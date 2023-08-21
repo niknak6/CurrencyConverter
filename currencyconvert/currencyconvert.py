@@ -16,7 +16,7 @@ class CurrencyConvert(commands.Cog):
         """Converts currency from one to another.
 
         Example:
-        - `[p]moneychanger 100 USD EUR`
+        - `[p]cconv 100 USD EUR`
         """
         # Validate the input parameters
         if amount <= 0:
