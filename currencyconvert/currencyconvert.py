@@ -11,12 +11,12 @@ class CurrencyConvert(commands.Cog):
         self.bot = bot
 
     # Define the command
-    @commands.command(name="currconv")
+    @commands.command(name="moneychanger")
     async def cconv(self, ctx, amount: float, from_currency: str, to_currency: str):
         """Converts currency from one to another.
 
         Example:
-        - `[p]cconv 100 USD EUR`
+        - `[p]moneychanger 100 USD EUR`
         """
         # Validate the input parameters
         if amount <= 0:
