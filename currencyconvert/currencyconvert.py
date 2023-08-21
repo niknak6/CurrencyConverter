@@ -5,7 +5,7 @@ import requests
 
 # Define the cog class
 class CurrencyConvert(commands.Cog):
-    """A cog that converts currency using this random ass Open API."""
+    """Built to help with currency conversions in Treachery Discord"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -16,7 +16,7 @@ class CurrencyConvert(commands.Cog):
         """Converts currency from one to another.
 
         Example:
-        - `[p]cconv USD EUR 100`
+        - `[p]cconv USD CAD 100`
         """
         # Validate the input parameters
         if amount <= 0:
@@ -30,7 +30,7 @@ class CurrencyConvert(commands.Cog):
         from_currency = from_currency.upper()
         to_currency = to_currency.upper()
 
-        # Make a request to the Open API
+        # Make a request to the API
         url = f"https://open.exchangerate-api.com/v6/latest"
         response = requests.get(url)
 
