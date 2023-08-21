@@ -12,7 +12,7 @@ class CurrencyConvert(commands.Cog):
 
     # Define the command
     @commands.command(name="cconv")
-    async def cconv(self, ctx, amount: float, from_currency: str, to_currency: str):
+    async def cconv(self, ctx, from_currency: str, to_currency: str, amount: float):
         """Converts currency from one to another.
 
         Example:
