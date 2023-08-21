@@ -5,7 +5,7 @@ import requests
 
 # Define the cog class
 class CurrencyConvert(commands.Cog):
-    """A cog that converts currency using the Open API."""
+    """A cog that converts currency using this random ass Open API."""
 
     def __init__(self, bot):
         self.bot = bot
