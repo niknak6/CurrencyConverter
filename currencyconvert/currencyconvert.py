@@ -11,7 +11,7 @@ class CurrencyConvert(commands.Cog):
         self.bot = bot
 
     # Define the command
-    @commands.command(name="cconv")
+    @commands.command(name="currconv")
     async def cconv(self, ctx, amount: float, from_currency: str, to_currency: str):
         """Converts currency from one to another.
 
