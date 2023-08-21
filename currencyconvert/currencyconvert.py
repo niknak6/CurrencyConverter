@@ -59,4 +59,4 @@ class CurrencyConvert(commands.Cog):
                 await ctx.send("The conversion rate for these currencies is not available.")
         else:
             # Send an error message
-            await ctx.send("The request to the Open API failed.")
+            await ctx.send("The request to the API failed.")
