@@ -36,7 +36,7 @@ class CurrencyConvert(commands.Cog):
 
         # Check if the request was successful
         if response.status_code == 200:
-            # Parse the response as JSON
+            # Parse the response
             data = response.json()
 
             # Check if the conversion rates exist
