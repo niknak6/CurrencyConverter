@@ -1,5 +1,7 @@
 import discord
 from redbot.core import commands, Config, utils, checks, bot
+# Import the discord.ext.threads module
+import discord.ext.threads
 
 class PictureOnly(commands.Cog):
     def __init__(self, bot):
@@ -18,12 +20,16 @@ class PictureOnly(commands.Cog):
         guild_id = message.guild.id
         picture_only_channel = await self.config.guild(message.guild).picture_only_channel()
 
-        # Fixed the indentation of this if block
         if picture_only_channel and message.channel.id == picture_only_channel:
             if not message.attachments:
                 await message.delete()
-                # Added a line to send a message when a message is deleted
-                await message.channel.send(f"{message.author.mention}, messages without pictures are automatically removed from this channel. If you wish to comment on someone else's picture, please start a thread from their message! *This message will be automatically removed in 30 seconds.*", delete_after=30)
+                # Send a DM to the user when their message is deleted
+                await message.author.send(f"Your message was removed from {message.channel.mention} because it did not have a picture attached. You can either post in another channel or post a message with a picture in {message.channel.mention}.")
+                # Delete the line that sends a message in the channel to inform other users
+                # await message.channel.send(f"{message.author.mention}, messages without pictures are automatically removed from this channel. If you wish to comment on someone else's picture, please start a thread from their message! *This message will be automatically removed in 30 seconds.*", delete_after=30)
+            else:
+                # Create a thread from the message with a picture
+                await message.create_thread(name=f"{message.author.name}'s picture", auto_archive_duration=60)
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
@@ -31,7 +37,8 @@ class PictureOnly(commands.Cog):
         """Enables the picture-only mode in the current channel."""
         channel = ctx.channel
         await self.config.guild(ctx.guild).picture_only_channel.set(channel.id)
-        await channel.set_permissions(ctx.guild.default_role, send_messages=False)
+        # Set permissions for threads
+        await channel.set_permissions(ctx.guild.default_role, send_messages=False, view_channel=True, read_message_history=True, view_threads=True, send_messages_in_threads=True)
         await ctx.send("The channel has been set to picture-only mode.")
 
     @commands.command()
@@ -40,7 +47,8 @@ class PictureOnly(commands.Cog):
         """Disables the picture-only mode in the current channel."""
         channel = ctx.channel
         await self.config.guild(ctx.guild).picture_only_channel.clear()
-        await channel.set_permissions(ctx.guild.default_role, send_messages=True)
+        # Revert permissions for threads
+        await channel.set_permissions(ctx.guild.default_role, send_messages=True, view_channel=True, read_message_history=True, view_threads=None, send_messages_in_threads=None)
         await ctx.send("The channel is no longer in picture-only mode.")
 
     @commands.command()
