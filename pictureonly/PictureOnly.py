@@ -1,7 +1,7 @@
 import discord
 from redbot.core import commands, Config, utils, checks, bot
-# Import the discord.ext.threads module
-import discord.ext.threads
+# Import the redbot.core.utils.chat_formatting module
+from redbot.core.utils.chat_formatting import create_thread
 
 class PictureOnly(commands.Cog):
     def __init__(self, bot):
@@ -28,8 +28,8 @@ class PictureOnly(commands.Cog):
                 # Delete the line that sends a message in the channel to inform other users
                 # await message.channel.send(f"{message.author.mention}, messages without pictures are automatically removed from this channel. If you wish to comment on someone else's picture, please start a thread from their message! *This message will be automatically removed in 30 seconds.*", delete_after=30)
             else:
-                # Create a thread from the message with a picture
-                await message.create_thread(name=f"{message.author.name}'s picture", auto_archive_duration=60)
+                # Create a thread from the message with a picture using the helper function
+                await create_thread(message, name=f"{message.author.name}'s picture", auto_archive_duration=60)
 
     @commands.command()
     @commands.has_permissions(manage_channels=True)
