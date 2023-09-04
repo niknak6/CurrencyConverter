@@ -23,7 +23,7 @@ class TikTokCog(commands.Cog):
                 # Get the discord mention of the person who posted the tiktok url
                 mention = message.author.mention
                 # Create a formatted message with the mention and modified url
-                formatted_message = f"**{mention} shared the following TikTok!**\n*I've made it embeddable.*\n{new_url}"
+                formatted_message = f"**{mention} originally shared this embedded TikTok video.** {new_url}"
                 # Repost the formatted message
                 await message.channel.send(formatted_message)
                 # Remove the original message
