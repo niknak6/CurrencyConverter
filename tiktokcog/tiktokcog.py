@@ -1,4 +1,3 @@
-# mycog.py
 import re
 from redbot.core import commands
 from discord import Embed, utils
