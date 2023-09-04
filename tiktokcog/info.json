@@ -3,7 +3,7 @@
     "short": "A cog that modifies tiktok urls",
     "description": "This cog listens for tiktok urls in messages and reposts them with vx before tiktok.com",
     "install_msg": "Thanks for installing TikTokCog!",
-    "author": ["Treachery],
+    "author": ["Treachery"],
     "required_cogs": {},
     "requirements": ["re"],
     "tags": ["tiktok", "regex", "url"],
