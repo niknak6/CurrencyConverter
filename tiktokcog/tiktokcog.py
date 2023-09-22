@@ -3,7 +3,6 @@ from redbot.core import commands
 import discord
 import requests
 from io import BytesIO
-from PIL import Image
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -24,19 +23,21 @@ class TikTokCog(commands.Cog):
             return
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
-        # Create a formatted message with the mention and modified url
-        formatted_message = f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
+        
         # Create a file object from the user's avatar url with requests and BytesIO
-        response = requests.get(message.author.avatar.url) # Use get method to fetch image data
-        img = Image.open(BytesIO(response.content)) # Use content attribute of response object
-        # Resize the image to 32x32 pixels
-        img_resize = img.resize((32, 32))
-        # Save the resized image to another BytesIO object
-        output = BytesIO()
-        img_resize.save(output, format="PNG")
-        output.seek(0) # Reset position to zero before passing to discord.File
-        file = discord.File(fp=output, filename="avatar.png")
-        # Repost the formatted message and the file object as an attachment
-        await message.channel.send(content=formatted_message, file=file)
-        # Remove the original message
+        response = requests.get(message.author.avatar.url) 
+        file = discord.File(fp=BytesIO(response.content), filename="avatar.png")
+        
+        # Create a custom emoji from the file object with a random name
+        emoji_name = "temp" + str(message.id) # Use message id as part of the name to avoid conflicts
+        emoji = await message.guild.create_custom_emoji(name=emoji_name, image=file.read())
+        
+        # Create a formatted message with the emoji, mention and modified url
+        formatted_message = f"{emoji} {message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
+        
+        # Repost the formatted message 
+        await message.channel.send(content=formatted_message)
+        
+        # Remove the original message and the custom emoji
         await message.delete()
+        await emoji.delete()
