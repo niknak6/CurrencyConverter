@@ -32,6 +32,7 @@ class TikTokCog(commands.Cog):
         # Set the file name to the user's display name
         file.filename = f"{message.author.display_name}.png"
         # Create a message reference object that points to the original message using discord.MessageReference
+        # Add resolved=True to this line
         reference = discord.MessageReference(message_id=message.id, channel_id=message.channel.id, guild_id=message.guild.id, resolved=True)
         # Create a formatted message with the modified url
         formatted_message = f"Originally shared this embedded TikTok video.\n{new_url}"
