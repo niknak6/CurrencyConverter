@@ -21,10 +21,13 @@ class TikTokCog(commands.Cog):
             return
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
-        # Create an embed with the user's name and avatar as the author field
-        embed = discord.Embed(description=f"Originally shared this embedded TikTok video.\n{new_url}")
-        # Use member.avatar.url instead of member.avatar_url
-        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar.url)
-        # Repost the embed and remove the original message
-        await message.channel.send(embed=embed)
+        # Create a file object from the user's avatar url
+        file = discord.File(message.author.avatar.url)
+        # Set the file name to the user's display name
+        file.filename = f"{message.author.display_name}.png"
+        # Create a formatted message with the mention and modified url
+        formatted_message = f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
+        # Repost the formatted message and the file object as an attachment
+        await message.channel.send(formatted_message, file=file)
+        # Remove the original message
         await message.delete()
