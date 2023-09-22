@@ -30,13 +30,14 @@ class TikTokCog(commands.Cog):
         
         # Create a custom emoji from the file object with a random name
         emoji_name = "temp" + str(message.id) # Use message id as part of the name to avoid conflicts
-        emoji = await message.guild.create_custom_emoji(name=emoji_name, image=file.content) # Use content attribute to get bytes-like object
+        emoji = await message.guild.create_custom_emoji(name=emoji_name, image=file.read()) # Use read method to get bytes-like object
         
         # Create a formatted message with the emoji, mention and modified url
         formatted_message = f"{emoji} {message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
         
-        # Repost the formatted message 
-        await message.channel.send(content=formatted_message)
+        # Repost the formatted message and the file object as an attachment
+        file.fp.seek(0) # Reset position to zero before reading again
+        await message.channel.send(content=formatted_message, file=file)
         
         # Remove the original message and the custom emoji
         await message.delete()
