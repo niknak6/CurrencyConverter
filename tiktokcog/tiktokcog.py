@@ -1,6 +1,7 @@
 import re
 import discord
 import requests
+from PIL import Image
 from redbot.core import commands
 
 class TikTokCog(commands.Cog):
@@ -26,6 +27,11 @@ class TikTokCog(commands.Cog):
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
         # Create a temporary emoji from the user's avatar and store it in the dictionary
         avatar_bytes = requests.get(message.author.avatar.url).content
+        # Resize the avatar image to 256x256 pixels and maintain its aspect ratio using PIL
+        avatar_image = Image.open(avatar_bytes)
+        max_size = (256, 256)
+        avatar_image.thumbnail(max_size, Image.ANTIALIAS)
+        avatar_bytes = avatar_image.tobytes()
         temp_emoji = await message.guild.create_custom_emoji(name=f"temp_{message.author.id}", image=avatar_bytes)
         self.temp_emojis[message.id] = temp_emoji
         # Create a formatted message with the emoji and modified url
