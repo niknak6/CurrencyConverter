@@ -5,7 +5,7 @@
     "install_msg": "Thanks for installing TikTokCog!",
     "author": ["Treachery"],
     "required_cogs": {},
-    "requirements": ["re"],
+    "requirements": [""],
     "tags": ["tiktok", "regex", "url"],
     "type": "COG",
     "min_bot_version": "3.5.0",
