@@ -1,8 +1,5 @@
 import re
 from redbot.core import commands
-import discord
-import requests
-from io import BytesIO
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -23,22 +20,8 @@ class TikTokCog(commands.Cog):
             return
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
-        
-        # Create a file object from the user's avatar url with requests and BytesIO
-        response = requests.get(message.author.avatar.url) 
-        file = discord.File(fp=BytesIO(response.content), filename="avatar.png")
-        
-        # Create a custom emoji from the file object with a random name
-        emoji_name = "temp" + str(message.id) # Use message id as part of the name to avoid conflicts
-        emoji = await message.guild.create_custom_emoji(name=emoji_name, image=file.read()) # Use read method to get bytes-like object
-        
-        # Create a formatted message with the emoji, mention and modified url
-        formatted_message = f"{emoji} {message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
-        
-        # Repost the formatted message and the file object as an attachment
-        file.fp.seek(0) # Reset position to zero before reading again
-        await message.channel.send(content=formatted_message, file=file)
-        
-        # Remove the original message and the custom emoji
+        # Create a formatted message with the mention and modified url
+        formatted_message = f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
+        # Repost the formatted message and remove the original message
+        await message.channel.send(formatted_message)
         await message.delete()
-        await emoji.delete()
