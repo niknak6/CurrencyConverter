@@ -1,6 +1,7 @@
 import re
 from redbot.core import commands
 import discord
+import requests
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -21,10 +22,12 @@ class TikTokCog(commands.Cog):
             return
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
-        # Create an embed with the mention and modified url
-        embed = discord.Embed(description=f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}")
-        # Set the thumbnail to the user's avatar with a size of 32x32
-        embed.set_thumbnail(url=message.author.avatar.url + "?size=32")
-        # Repost the embed and remove the original message
-        await message.channel.send(embed=embed)
+        # Create a formatted message with the mention and modified url
+        formatted_message = f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
+        # Create a file object from the user's avatar url with requests
+        response = requests.get(message.author.avatar.url)
+        file = discord.File(fp=response.content, filename="avatar.png")
+        # Repost the formatted message and the file object as an attachment
+        await message.channel.send(content=formatted_message, file=file)
+        # Remove the original message
         await message.delete()
