@@ -24,7 +24,8 @@ class TikTokCog(commands.Cog):
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
         # Download the file from the user's avatar url using requests
-        response = requests.get(message.author.avatar.url)
+        # Change the size argument to a lower value, such as 256 or 128
+        response = requests.get(message.author.avatar_url_as(size=256))
         # Create a BytesIO object from the response content using io
         file_data = io.BytesIO(response.content)
         # Create a file object from the BytesIO object using discord.File
