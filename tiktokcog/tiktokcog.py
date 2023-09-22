@@ -1,5 +1,6 @@
 import re
 from redbot.core import commands
+import discord
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -20,8 +21,10 @@ class TikTokCog(commands.Cog):
             return
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
-        # Create a formatted message with the mention and modified url
-        formatted_message = f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
-        # Repost the formatted message and remove the original message
-        await message.channel.send(formatted_message)
+        # Create an embed with the mention and modified url
+        embed = discord.Embed(description=f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}")
+        # Set the thumbnail to the user's avatar with a size of 32x32
+        embed.set_thumbnail(url=message.author.avatar_url_as(size=32))
+        # Repost the embed and remove the original message
+        await message.channel.send(embed=embed)
         await message.delete()
