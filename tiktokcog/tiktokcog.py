@@ -24,7 +24,7 @@ class TikTokCog(commands.Cog):
         # Create an embed with the mention and modified url
         embed = discord.Embed(description=f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}")
         # Set the thumbnail to the user's avatar with a size of 32x32
-        embed.set_thumbnail(url=message.author.avatar_url_as(size=32))
+        embed.set_thumbnail(url=message.author.avatar.url + "?size=32")
         # Repost the embed and remove the original message
         await message.channel.send(embed=embed)
         await message.delete()
