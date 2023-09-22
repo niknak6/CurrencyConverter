@@ -1,3 +1,4 @@
+import discord # Add this line
 import re
 from redbot.core import commands
 
