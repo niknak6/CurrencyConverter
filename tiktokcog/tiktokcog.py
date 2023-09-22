@@ -27,6 +27,8 @@ class TikTokCog(commands.Cog):
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
         # Create a temporary emoji from the user's avatar and store it in the dictionary
         avatar_bytes = requests.get(message.author.avatar.url).content
+        # Replace any null characters with empty strings
+        avatar_bytes = avatar_bytes.replace(b'\x00', b'')
         # Resize the avatar image to 256x256 pixels and maintain its aspect ratio using PIL
         avatar_image = Image.open(avatar_bytes)
         max_size = (256, 256)
