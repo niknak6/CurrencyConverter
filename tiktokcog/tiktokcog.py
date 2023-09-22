@@ -2,6 +2,7 @@ import re
 from redbot.core import commands
 import discord
 import requests
+from io import BytesIO
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -24,9 +25,9 @@ class TikTokCog(commands.Cog):
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
         # Create a formatted message with the mention and modified url
         formatted_message = f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
-        # Create a file object from the user's avatar url with requests
+        # Create a file object from the user's avatar url with requests and BytesIO
         response = requests.get(message.author.avatar.url)
-        file = discord.File(fp=response.content, filename="avatar.png")
+        file = discord.File(fp=BytesIO(response.content), filename="avatar.png")
         # Repost the formatted message and the file object as an attachment
         await message.channel.send(content=formatted_message, file=file)
         # Remove the original message
