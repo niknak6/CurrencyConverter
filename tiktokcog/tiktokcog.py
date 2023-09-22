@@ -27,13 +27,14 @@ class TikTokCog(commands.Cog):
         # Create a formatted message with the mention and modified url
         formatted_message = f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
         # Create a file object from the user's avatar url with requests and BytesIO
-        response = requests.get(message.author.avatar.url)
-        img = Image.open(BytesIO(response.content))
+        response = requests.get(message.author.avatar.url) # Use get method to fetch image data
+        img = Image.open(BytesIO(response.content)) # Use content attribute of response object
         # Resize the image to 32x32 pixels
         img_resize = img.resize((32, 32))
         # Save the resized image to another BytesIO object
         output = BytesIO()
         img_resize.save(output, format="PNG")
+        output.seek(0) # Reset position to zero before passing to discord.File
         file = discord.File(fp=output, filename="avatar.png")
         # Repost the formatted message and the file object as an attachment
         await message.channel.send(content=formatted_message, file=file)
