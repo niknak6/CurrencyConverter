@@ -1,4 +1,4 @@
-import discord # Add this line
+import discord
 import re
 from redbot.core import commands
 
@@ -23,7 +23,8 @@ class TikTokCog(commands.Cog):
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
         # Create an embed with the user's name and avatar as the author field
         embed = discord.Embed(description=f"Originally shared this embedded TikTok video.\n{new_url}")
-        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
+        # Use member.avatar.url instead of member.avatar_url
+        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar.url)
         # Repost the embed and remove the original message
         await message.channel.send(embed=embed)
         await message.delete()
