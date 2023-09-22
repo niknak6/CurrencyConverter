@@ -1,6 +1,7 @@
 import re
 import discord
 import requests
+import io
 from PIL import Image
 from redbot.core import commands
 
@@ -33,7 +34,12 @@ class TikTokCog(commands.Cog):
         avatar_image = Image.open(avatar_bytes)
         max_size = (256, 256)
         avatar_image.thumbnail(max_size, Image.ANTIALIAS)
-        avatar_bytes = avatar_image.tobytes()
+        # Create a BytesIO object to store the image data
+        avatar_bytes = io.BytesIO()
+        # Save the resized avatar image as a PNG file in the BytesIO object
+        avatar_image.save(avatar_bytes, format="PNG")
+        # Get the value of the BytesIO object as a byte string
+        avatar_bytes = avatar_bytes.getvalue()
         temp_emoji = await message.guild.create_custom_emoji(name=f"temp_{message.author.id}", image=avatar_bytes)
         self.temp_emojis[message.id] = temp_emoji
         # Create a formatted message with the emoji and modified url
