@@ -1,5 +1,7 @@
 import discord
 import re
+import requests # Import requests module
+import io # Import io module
 from redbot.core import commands
 
 class TikTokCog(commands.Cog):
@@ -21,8 +23,12 @@ class TikTokCog(commands.Cog):
             return
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
-        # Create a file object from the user's avatar url
-        file = discord.File(message.author.avatar.url)
+        # Download the file from the user's avatar url using requests
+        response = requests.get(message.author.avatar.url)
+        # Create a BytesIO object from the response content using io
+        file_data = io.BytesIO(response.content)
+        # Create a file object from the BytesIO object using discord.File
+        file = discord.File(file_data)
         # Set the file name to the user's display name
         file.filename = f"{message.author.display_name}.png"
         # Create a formatted message with the mention and modified url
