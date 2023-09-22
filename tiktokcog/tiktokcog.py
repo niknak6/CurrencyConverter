@@ -24,7 +24,7 @@ class TikTokCog(commands.Cog):
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
         # Create a temporary emoji from the user's avatar and store it in the dictionary
-        avatar_bytes = await message.author.avatar_url.read()
+        avatar_bytes = await message.author.avatar.url.read()
         temp_emoji = await message.guild.create_custom_emoji(name=f"temp_{message.author.id}", image=avatar_bytes)
         self.temp_emojis[message.id] = temp_emoji
         # Create a formatted message with the emoji and modified url
