@@ -30,7 +30,7 @@ class TikTokCog(commands.Cog):
         
         # Create a custom emoji from the file object with a random name
         emoji_name = "temp" + str(message.id) # Use message id as part of the name to avoid conflicts
-        emoji = await message.guild.create_custom_emoji(name=emoji_name, image=file.read())
+        emoji = await message.guild.create_custom_emoji(name=emoji_name, image=file.read()) # Use read method to get bytes-like object
         
         # Create a formatted message with the emoji, mention and modified url
         formatted_message = f"{emoji} {message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
