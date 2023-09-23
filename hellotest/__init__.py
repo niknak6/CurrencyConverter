@@ -1,4 +1,4 @@
-from .HelloTest import HelloTest
+from .hellotest import HelloTest
 
 
 async def setup(bot):
