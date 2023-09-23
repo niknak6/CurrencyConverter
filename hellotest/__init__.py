@@ -1,5 +1,5 @@
-from .PictureOnly import PictureOnly
+from .HelloTest import HelloTest
 
 
 async def setup(bot):
-    await bot.add_cog(PictureOnly(bot))
+    await bot.add_cog(HelloTest(bot))
