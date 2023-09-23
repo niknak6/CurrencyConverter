@@ -1,29 +1,20 @@
 import discord
-from redbot.core import commands
+from discord.ext import commands
+from PIL import Image
 
 class HelloTest(commands.Cog):
     def __init__(self, bot):
-        super().__init__()
         self.bot = bot
+        self.emojis = {}
 
     @commands.command()
-    async def hellotest(self, ctx):
-        """Creates a custom emoji out of the user's avatar, posts it, and then removes the custom emoji from the server."""
+    async def hellocustom(self, ctx):
+        # Get the user's avatar URL
+        avatar_url = ctx.author.avatar_url
 
-        # Get the user's avatar.
-        avatar = ctx.author.avatar
+        # Download the avatar image and convert it to a PIL image object
+        response = await aiohttp.ClientSession().get(avatar_url)
+        image = Image.open(BytesIO(await response.read()))
 
-        # Create a temporary file to store the avatar image.
-        with open("avatar.png", "wb") as f:
-            async for chunk in avatar.read():
-                f.write(chunk)
-
-        # Create a custom emoji from the avatar image.
-        emoji = await ctx.guild.create_custom_emoji(name="hellotest", image=open("avatar.png", "rb"))
-
-        # Post the custom emoji.
-        await ctx.send(emoji)
-
-        # Remove the custom emoji from the server.
-        await emoji.delete()
-
+        # Create a new emoji with the avatar image
+        emoji = Image.new('RGBA', (64, 64), (255, 255, 255, 25
