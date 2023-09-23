@@ -11,11 +11,11 @@ class HelloTest(commands.Cog):
         """Creates a custom emoji out of the user's avatar, posts it, and then removes the custom emoji from the server."""
 
         # Get the user's avatar.
-        avatar_url = ctx.author.avatar_url
+        avatar = ctx.author.avatar
 
         # Create a temporary file to store the avatar image.
         with open("avatar.png", "wb") as f:
-            async for chunk in avatar_url.read():
+            async for chunk in avatar.read():
                 f.write(chunk)
 
         # Create a custom emoji from the avatar image.
