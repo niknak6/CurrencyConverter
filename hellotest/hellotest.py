@@ -2,6 +2,10 @@ import discord
 from redbot.core import commands
 
 class HelloTest(commands.Cog):
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+
     @commands.command()
     async def hellotest(self, ctx):
         """Creates a custom emoji out of the user's avatar, posts it, and then removes the custom emoji from the server."""
