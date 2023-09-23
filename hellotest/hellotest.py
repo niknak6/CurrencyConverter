@@ -12,7 +12,10 @@ class HelloTest(commands.Cog):
     async def hellotest(self, ctx):
         """This creates a custom emoji with your avatar and posts it"""
         # Get the user's avatar URL
-        avatar_url = str(ctx.author.avatar_url_as(format="png"))
+        # Replace this line
+        # avatar_url = str(ctx.author.avatar_url_as(format="png"))
+        # With this line
+        avatar_url = str(ctx.author.avatar.url)
 
         # Create a temporary session to download the avatar image
         async with aiohttp.ClientSession() as session:
