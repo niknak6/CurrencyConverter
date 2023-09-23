@@ -24,7 +24,7 @@ class HelloTest(commands.Cog):
 
         # Resize the image to 128x128 pixels using discord.py's Asset class
         file = discord.File(image_file, filename="avatar.png")
-        resized_asset = asset.resize(128)
+        resized_asset = file.resize(128)
         # Read the resized image data as bytes
         resized_image_data = await resized_asset.read()
 
