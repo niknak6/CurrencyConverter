@@ -1,19 +1,25 @@
 import discord
 from redbot.core import commands
 
-class HelloTest(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class Hellotest(commands.Cog):
+    @commands.command()
+    async def hellotest(self, ctx):
+        """Creates a custom emoji out of the user's avatar, posts it, and then removes the custom emoji from the server."""
 
-@commands.command()
-async def hellotest(self, ctx):
-    """Creates a custom emoji out of the user's avatar and posts it."""
+        # Get the user's avatar.
+        avatar_url = ctx.author.avatar_url
 
-    avatar = ctx.author.avatar
-    avatar_url = avatar.url
-    emoji = await ctx.guild.create_custom_emoji(avatar_url, name=ctx.author.name)
-    await ctx.send(f"Hello, {ctx.author.name}! Here is your custom emoji: {emoji}")
-    await emoji.delete()
+        # Create a temporary file to store the avatar image.
+        with open("avatar.png", "wb") as f:
+            async for chunk in avatar_url.read():
+                f.write(chunk)
 
-async def setup(bot):
-    await bot.add_cog(HelloTestCog(bot))
+        # Create a custom emoji from the avatar image.
+        emoji = await ctx.guild.create_custom_emoji(name="hellotest", image=open("avatar.png", "rb"))
+
+        # Post the custom emoji.
+        await ctx.send(emoji)
+
+        # Remove the custom emoji from the server.
+        await emoji.delete()
+
