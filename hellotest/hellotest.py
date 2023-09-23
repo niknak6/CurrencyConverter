@@ -8,7 +8,7 @@ class HelloTest(commands.Cog):
         self.emojis = {}
 
     @commands.command()
-    async def hellocustom(self, ctx):
+    async def hellotest(self, ctx):
         # Get the user's avatar URL
         avatar_url = ctx.author.avatar_url
 
