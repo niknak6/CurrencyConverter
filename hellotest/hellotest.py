@@ -12,7 +12,7 @@ class HelloTest(commands.Cog):
     async def hellotest(self, ctx):
         """This creates a custom emoji with your avatar and posts it"""
         # Get the user's avatar URL with a smaller size
-        avatar_url = ctx.author.avatar_url_as(size=128)
+        avatar_url = ctx.author.avatar.url(size=128)
         # Read the image data as bytes
         image_data = await avatar_url.read()
 
