@@ -18,7 +18,7 @@ class HelloTest(commands.Cog):
     # Get the avatar URL of the author using the 'avatar' and 'url' attributes
     avatar_url = author.avatar.url
     # Use aiohttp to get the avatar image as bytes
-    async with self.bot.session.get(avatar_url) as response:
+    async with self.bot.http_session.get(avatar_url) as response:
       avatar_bytes = await response.read()
     # Use discord.File to create a file object from the bytes
     avatar_file = discord.File(avatar_bytes, filename="avatar.png")
