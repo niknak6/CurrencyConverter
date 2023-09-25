@@ -43,14 +43,23 @@ class TikTokCog(commands.Cog):
         # Resize the image to 128x128 pixels
         image = image.resize((128, 128))
 
-        # Save the resized image as avatar_resized.png
-        image.save("avatar_resized.png")
+        # Create a mask image with the same size and RGBA mode
+        mask = Image.new("RGBA", image.size)
+
+        # Draw a black circle on the mask image using the pieslice method
+        mask.pieslice([0, 0, *image.size], 0, 360, fill=(0, 0, 0, 255))
+
+        # Apply the mask to the avatar image using the Image.composite method
+        image = Image.composite(image, Image.new("RGBA", image.size), mask)
+
+        # Save the cropped image as avatar_cropped.png
+        image.save("avatar_cropped.png")
 
         # Get the guild object from the message
         guild = message.guild
 
-        # Open the resized image file in binary mode
-        with open("avatar_resized.png", "rb") as image:
+        # Open the cropped image file in binary mode
+        with open("avatar_cropped.png", "rb") as image:
 
             # Create a custom emoji with a random name and the image file
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
@@ -66,6 +75,6 @@ class TikTokCog(commands.Cog):
         # Delete the custom emoji
         await emoji.delete()
 
-        # Delete the avatar.png and avatar_resized.png files
+        # Delete the avatar.png and avatar_cropped.png files
         os.remove("avatar.png")
-        os.remove("avatar_resized.png")
+        os.remove("avatar_cropped.png")
