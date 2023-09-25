@@ -45,7 +45,7 @@ class HelloTest(commands.Cog):
             emoji = await guild.create_custom_emoji(name="user_avatar", image=image.read())
 
         # Send a message with the custom emoji
-        await ctx.send(f"Here is your custom emoji: <:{emoji.name}:{emoji.id}>")
+        await ctx.send(f"<:{emoji.name}:{emoji.id}>")
 
         # Delete the custom emoji
         await emoji.delete()
