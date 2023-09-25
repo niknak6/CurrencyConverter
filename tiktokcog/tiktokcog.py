@@ -2,7 +2,7 @@ import os
 import random
 import re
 import requests
-from PIL import Image # Import PIL library
+from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
 
 class TikTokCog(commands.Cog):
@@ -46,8 +46,11 @@ class TikTokCog(commands.Cog):
         # Create a mask image with the same size and RGBA mode
         mask = Image.new("RGBA", image.size)
 
-        # Draw a black circle on the mask image using the pieslice method
-        mask.pieslice([0, 0, *image.size], 0, 360, fill=(0, 0, 0, 255))
+        # Create a Draw object for the mask image
+        draw = ImageDraw.Draw(mask)
+
+        # Draw a black circle on the mask image using the ellipse method
+        draw.ellipse([0, 0, *image.size], fill=(0, 0, 0, 255))
 
         # Apply the mask to the avatar image using the Image.composite method
         image = Image.composite(image, Image.new("RGBA", image.size), mask)
