@@ -18,7 +18,7 @@ class HelloTest(commands.Cog):
         user = ctx.author
 
         # Get the avatar URL from the user object
-        avatar_url = user.avatar_url
+        avatar_url = user.avatar.url
 
         # Download the image from the URL and save it as avatar.png
         response = requests.get(avatar_url)
