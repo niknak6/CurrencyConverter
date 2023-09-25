@@ -12,7 +12,7 @@ class HelloTest(commands.Cog):
   # Create a command decorator and name your command hellotest
   @commands.command()
   # Define the hellotest method and pass the context as an argument
-async def hellotest(self, ctx):
+  async def hellotest(self, ctx):
   # Get the author of the message that invoked the command
   author = ctx.author
   # Get the avatar URL of the author using the 'avatar' and 'url' attributes
