@@ -1,4 +1,8 @@
+import os
+import random
 import re
+import requests
+from PIL import Image # Import PIL library
 from redbot.core import commands
 
 class TikTokCog(commands.Cog):
@@ -18,10 +22,50 @@ class TikTokCog(commands.Cog):
         tiktok_url = self.tiktok_pattern.search(message.content)
         if not tiktok_url:
             return
+
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
-        # Create a formatted message with the mention and modified url
-        formatted_message = f"{message.author.mention} originally shared this embedded TikTok video.\n{new_url}"
+
+        # Get the user object from the message
+        user = message.author
+
+        # Get the avatar URL from the user object
+        avatar_url = user.avatar.url
+
+        # Download the image from the URL and save it as avatar.png
+        response = requests.get(avatar_url)
+        with open("avatar.png", "wb") as file:
+            file.write(response.content)
+
+        # Open the avatar image file
+        image = Image.open("avatar.png")
+
+        # Resize the image to 128x128 pixels
+        image = image.resize((128, 128))
+
+        # Save the resized image as avatar_resized.png
+        image.save("avatar_resized.png")
+
+        # Get the guild object from the message
+        guild = message.guild
+
+        # Open the resized image file in binary mode
+        with open("avatar_resized.png", "rb") as image:
+
+            # Create a custom emoji with a random name and the image file
+            emoji_name = f"user_avatar_{random.randint(0, 9999)}"
+            emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
+
+        # Create a formatted message with the custom emoji, the mention and modified url
+        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}\n"
+
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
         await message.delete()
+
+        # Delete the custom emoji
+        await emoji.delete()
+
+        # Delete the avatar.png and avatar_resized.png files
+        os.remove("avatar.png")
+        os.remove("avatar_resized.png")
