@@ -1,6 +1,7 @@
 import os
 import random
 import requests
+from PIL import Image # Import the PIL library
 from redbot.core import commands
 
 # Create a class for the cog
@@ -25,11 +26,20 @@ class HelloTest(commands.Cog):
         with open("avatar.png", "wb") as file:
             file.write(response.content)
 
+        # Open the avatar image file
+        image = Image.open("avatar.png")
+
+        # Resize the image to 128x128 pixels
+        image = image.resize((128, 128))
+
+        # Save the resized image as avatar_resized.png
+        image.save("avatar_resized.png")
+
         # Get the guild object from the context
         guild = ctx.guild
 
-        # Open the avatar image file in binary mode
-        with open("avatar.png", "rb") as image:
+        # Open the resized image file in binary mode
+        with open("avatar_resized.png", "rb") as image:
 
             # Create a custom emoji with the name "user_avatar" and the image file
             emoji = await guild.create_custom_emoji(name="user_avatar", image=image.read())
@@ -40,5 +50,6 @@ class HelloTest(commands.Cog):
         # Delete the custom emoji
         await emoji.delete()
 
-        # Delete the avatar.png file
+        # Delete the avatar.png and avatar_resized.png files
         os.remove("avatar.png")
+        os.remove("avatar_resized.png")
