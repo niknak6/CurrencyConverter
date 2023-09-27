@@ -1,5 +1,6 @@
 # Import the necessary modules
 from redbot.core import commands, checks
+from redbot.core.commands.requires import has_any_guild_permissions # Use this module instead
 import discord, asyncio
 
 # Define the cog class
@@ -47,7 +48,7 @@ class RequestEmoji(commands.Cog):
     async def on_raw_reaction_add(self, payload):
         """Handle the reactions on the request messages"""
         # Check if the reaction is on a request message and from an admin
-        if (payload.message_id, payload.channel_id) in self.requests and await commands.has_any_guild_permissions(administrator=True, manage_messages=True, manage_roles=True).predicate(await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id), payload.member): # Use payload.member instead of self.bot.get_user(payload.user_id)
+        if (payload.message_id, payload.channel_id) in self.requests and await has_any_guild_permissions(administrator=True, manage_messages=True, manage_roles=True).predicate(await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id), payload.member): # Use has_any_guild_permissions from redbot.core.commands.requires instead of commands
             # Get the channel and message objects
             channel = self.bot.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
