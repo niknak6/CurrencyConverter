@@ -1,4 +1,5 @@
 from discord.ext.commands import Cog
+from discord.ext import commands
 from PIL import Image
 import io
 import requests
