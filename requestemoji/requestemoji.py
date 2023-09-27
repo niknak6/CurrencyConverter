@@ -62,8 +62,8 @@ class RequestEmoji (commands.Cog):
     image.save (image_bytes, format="PNG")
     image_bytes.seek (0)
 
-    # Create a discord.File object from the bytes
-    file = discord.File (image_bytes, filename="sticker.png")
+    # Create a discord.File object from the bytes and the filename
+    file = discord.File (image_bytes, filename=attachment.filename)
 
     # Send a confirmation message with the sticker preview and reactions
     message = await ctx.send (
@@ -118,8 +118,8 @@ class RequestEmoji (commands.Cog):
     image.save (image_bytes, format="PNG")
     image_bytes.seek (0)
 
-    # Create a discord.File object from the bytes
-    file = discord.File (image_bytes, filename="emoji.png")
+    # Create a discord.File object from the bytes and the filename
+    file = discord.File (image_bytes, filename=attachment.filename)
 
     # Send a confirmation message with the emoji preview and reactions
     message = await ctx.send (
@@ -185,4 +185,9 @@ class RequestEmoji (commands.Cog):
         elif emoji.name == "\u274c": # Cross emoji
           # Deny the request
           # Send a failure message with the reason
-          await channel.send 
+          await channel.send (
+            f"{member.mention} has denied {message.author.mention}'s request for a {request_type} with name {name}."
+          )
+
+          # Delete the request message
+          await message.delete ()
