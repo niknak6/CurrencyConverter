@@ -3,7 +3,7 @@ import discord
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import humanize_list
 from PIL import Image
-from resizeimage import resizeimage
+import io
 
 # Define a class for the cog
 class RequestEmoji (commands.Cog):
@@ -42,15 +42,15 @@ class RequestEmoji (commands.Cog):
     image_bytes = await attachment.read ()
 
     # Open the image with PIL and check its size and format
-    image = Image.open (image_bytes)
+    image = Image.open (io.BytesIO(image_bytes))
     width, height = image.size
     format = image.format
 
     # Check if the image size is exactly 320x320
     if width != 320 or height != 320:
-      # Resize the image using resizeimage library with mode 'contain'
-      # This will preserve the aspect ratio and fill the background with transparent pixels
-      image = resizeimage.resize_contain (image, [320, 320])
+      # Resize the image using Image.thumbnail method with size (320, 320)
+      # This will preserve the aspect ratio and not exceed the original size or the given size
+      image.thumbnail ((320, 320))
 
     # Check if the image format is PNG or APNG
     if format not in ["PNG", "APNG"]:
@@ -98,15 +98,15 @@ class RequestEmoji (commands.Cog):
     image_bytes = await attachment.read ()
 
     # Open the image with PIL and check its size and format
-    image = Image.open (image_bytes)
+    image = Image.open (io.BytesIO(image_bytes))
     width, height = image.size
     format = image.format
 
     # Check if the image size is between 32x32 and 128x128
     if width < 32 or height < 32 or width > 128 or height > 128:
-      # Resize the image using resizeimage library with mode 'thumbnail'
-      # This will preserve the aspect ratio and fit the image within the bounds
-      image = resizeimage.resize_thumbnail (image, [128, 128])
+      # Resize the image using Image.thumbnail method with size (128, 128)
+      # This will preserve the aspect ratio and not exceed the original size or the given size
+      image.thumbnail ((128, 128))
 
     # Check if the image format is PNG or GIF
     if format not in ["PNG", "GIF"]:
