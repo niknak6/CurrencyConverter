@@ -119,4 +119,4 @@ class RequestEmoji(commands.Cog):
     await message.add_reaction("\u274c") # X emoji
     
     # Wait for a reaction from an Officer or Guild Master
-    def check(reaction, user): # Define a check function that returns True if the reaction is valid and False otherwise
+    def check(reaction, user): #
