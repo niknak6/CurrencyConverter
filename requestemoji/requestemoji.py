@@ -98,16 +98,10 @@ class Request(commands.Cog):
 
   @request.command(name="emoji", aliases=["emote"], help="Request a custom emoji to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
   @commands.cooldown(1, 1800, commands.BucketType.user) # Change the cooldown to 30 minutes
-  @commands.bot_has_permissions(manage_emojis=True) # Check if the bot has the permission to manage emojis
-  @commands.has_permissions(manage_emojis=True) # Check if the user has the permission to manage emojis
-  async def request_emoji(self, ctx, name: str):
-    # Call the helper function with emoji parameters
-    await self.request_custom_asset(ctx, name, "emoji", 256 * 1024, (128, 128))
 
-  @request.command(name="sticker", aliases=["stick"], help="Request a custom sticker to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
-  @commands.cooldown(1, 1800, commands.BucketType.user) # Change the cooldown to 30 minutes
-  @commands.bot_has_permissions(manage_stickers=True) # Check if the bot has the permission to manage stickers
-  @commands.has_permissions(manage_stickers=True) # Check if the user has the permission to manage stickers
-  async def request_sticker(self, ctx, name: str):
-    # Call the helper function with sticker parameters
-    await self.request_custom_asset(ctx, name, "sticker", 512 * 1024, (512, 512))
+  # Define a custom check function that uses discord.Permissions class to check if the bot has the permission to manage emojis
+  def bot_has_manage_emojis():
+    def predicate(ctx):
+      bot_permissions = discord.Permissions(ctx.guild.me.guild_permissions.value) # Create a permissions object from bot's guild permissions value
+      return bot_permissions.manage_emojis # Return True if bot has manage_emojis permission
+    return commands.check(predicate
