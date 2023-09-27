@@ -6,8 +6,8 @@ from PIL import Image
 import io
 import asyncio # Import asyncio for handling timeout error
 
-# Import UserFeedbackCheckFailure from redbot.core.errors
-from redbot.core.errors import UserFeedbackCheckFailure
+# Import CogLoadError from redbot.core.errors
+from redbot.core.errors import CogLoadError
 
 class RequestEmoji(commands.Cog):
   """A cog that allows users to request custom emojis and stickers."""
@@ -28,18 +28,18 @@ class RequestEmoji(commands.Cog):
     try: # Try to get the image data from the attachment
       image_data = await attachment.read()
     except Exception as e: # If something goes wrong, raise an error and send a message
-      raise UserFeedbackCheckFailure(f"Something went wrong while reading the image: {e}")
+      raise CogLoadError(f"Something went wrong while reading the image: {e}")
       await ctx.send("There was an error while reading the image. Please try again with a valid PNG or JPG file.")
       return
     
     try: # Try to resize the image using thumbnail algorithm with resize_size as desired size
       image_data = resize_image(image_data, resize_size)
       if len(image_data) > max_size: # If the image is still too large, raise an error and send a message
-        raise UserFeedbackCheckFailure(f"The image is too large. It must be smaller than {max_size // 1024} KB.")
+        raise CogLoadError(f"The image is too large. It must be smaller than {max_size // 1024} KB.")
         await ctx.send(f"The image is too large. It must be smaller than {max_size // 1024} KB.")
         return
     except Exception as e: # If something goes wrong, raise an error and send a message
-      raise UserFeedbackCheckFailure(f"Something went wrong while processing the image: {e}")
+      raise CogLoadError(f"Something went wrong while processing the image: {e}")
       await ctx.send("There was an error while processing the image. Please try again with a valid PNG or JPG file.")
       return
     
@@ -73,7 +73,7 @@ class RequestEmoji(commands.Cog):
           asset = await ctx.guild.create_custom_sticker(name=name, image=image_data)
         await ctx.send(f"The {asset_type} {asset} was added successfully.")
       except Exception as e: # If something goes wrong, raise an error and send a message
-        raise UserFeedbackCheckFailure(f"Something went wrong while creating the {asset_type}: {e}")
+        raise CogLoadError(f"Something went wrong while creating the {asset_type}: {e}")
         await ctx.send(f"There was an error while creating the {asset_type}. Please try again later.")
         return
     
