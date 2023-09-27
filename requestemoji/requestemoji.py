@@ -134,10 +134,8 @@ class RequestEmoji (commands.Cog):
   # Define an event listener for reaction add
   @commands.Cog.listener ()
   async def on_raw_reaction_add (self, payload):
-    # Check if the reaction is on a request message
-    # You can use the database or the config object to check this
-    # For simplicity, I will assume that the request messages have a specific channel ID
-    if payload.channel_id == REQUEST_CHANNEL_ID:
+    # Check if the reaction is on a message sent by the bot itself
+    if payload.user_id != self.bot.user.id:
       # Get the guild, member, message, and emoji from the payload
       guild = self.bot.get_guild (payload.guild_id)
       member = guild.get_member (payload.user_id)
