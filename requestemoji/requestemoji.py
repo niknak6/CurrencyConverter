@@ -1,3 +1,4 @@
+from redbot.core import commands
 import discord
 from redbot.core import commands, checks, Config
 from PIL import Image
