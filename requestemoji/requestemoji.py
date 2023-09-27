@@ -60,8 +60,8 @@ class RequestEmoji(commands.Cog):
     message = await ctx.send(embed=embed, file=file) # Send the embed message with the file attachment
     
     # Add a checkmark and x emoji as reactions to the embed message
-    await self.bot.add_reaction(message, "\u2705") # Checkmark emoji
-    await self.bot.add_reaction(message, "\u274c") # X emoji
+    await message.add_reaction("\u2705") # Checkmark emoji
+    await message.add_reaction("\u274c") # X emoji
     
     # Wait for a reaction from an Officer or Guild Master
     def check(reaction, user): # Define a check function that returns True if the reaction is valid and False otherwise
