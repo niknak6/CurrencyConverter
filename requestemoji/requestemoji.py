@@ -65,9 +65,8 @@ class RequestEmoji(commands.Cog):
     await message.add_reaction("\u274c") # X emoji
     
     # Wait for a reaction from an Officer or Guild Master
-    @checks.mod_or_permissions() # Use checks.mod_or_permissions() as a decorator with no arguments
     def check(reaction, user): # Define a check function that returns True if the reaction is valid and False otherwise
-      return (reaction.message.id == message.id and user != self.bot.user and reaction.emoji in ["\u2705", "\u274c"])
+      return (reaction.message.id == message.id and user != self.bot.user and user.top_role.name in ["Officer", "Guild Master"] and reaction.emoji in ["\u2705", "\u274c"]) # Use user.top_role.name to check if the user has a mod or permissions role
     
     try: # Try to wait for a reaction that passes the check function within 60 seconds
       reaction, user = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
