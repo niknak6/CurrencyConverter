@@ -93,4 +93,8 @@ class RequestEmoji(commands.Cog):
   @commands.command(name="requeststicker", aliases=["reqsticker"], help="Request a custom sticker to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
   @commands.guild_only()
   @commands.cooldown(1, 1800, commands.BucketType.user) # Change the cooldown to 30 minutes
-  async def request_sticker
+  async def request_sticker(self, ctx, name: str): # Add a colon at the end of this line
+    # Call the helper function with sticker parameters
+    await self.request_custom_asset(ctx, name, "sticker", 500 * 1024, (320, 320)) # Indent this line properly
+
+# Define a function
