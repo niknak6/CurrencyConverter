@@ -74,7 +74,7 @@ bot = commands.Bot(command_prefix="!")
 
 # Define a command called requeststicker that takes the name of the sticker and the attached attachment to turn into a sticker as arguments
 @bot.command()
-async def requeststicker(ctx, name, attachment):
+async def requeststicker(ctx, name: str, *, attachment: discord.Attachment):
     # Check if the user has attached an image file to their message
     if attachment is None or not attachment.filename.lower().endswith(('.jpg', '.jpeg', '.png')):
         # Send an error message and return
