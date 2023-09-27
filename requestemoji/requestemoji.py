@@ -1,77 +1,57 @@
 import discord
 from discord.ext import commands
 from PIL import Image
-import io
+from io import BytesIO
+import asyncio
 
 class RequestEmoji(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
-    async def requeststicker(self, ctx, name=None):
-        # Check if message has attachments
-        if not ctx.message.attachments:
-            await ctx.send("Please attach an image file.")
+    async def requeststicker(self, ctx, *, name: str):
+        if len(ctx.message.attachments) == 0:
+            await ctx.send("Please attach an image.")
             return
-        
-        # Get attachment and save to file-like object
-        attachment = ctx.message.attachments[0]
-        file = io.BytesIO()
-        await attachment.save(file)
 
-        # Open image and check format, size, and mode
-        image = Image.open(file)
-        format = image.format
-        size = image.size
-        mode = image.mode
+        image = await ctx.message.attachments[0].read()
+        image = Image.open(BytesIO(image))
 
-        # Convert format if needed
-        if format not in ["PNG", "APNG", "LOTTIE"]:
-            image = image.convert("RGBA")
-            format = "PNG"
+        # Resize the image if it's too big
+        if image.size != (320, 320):
+            image.thumbnail((320, 320))
 
-        # Resize image if needed
-        if size != (320, 320):
-            image = image.resize((320, 320), Image.LANCZOS)
-            size = (320, 320)
+        # Save the image as a PNG
+        buffer = BytesIO()
+        image.save(buffer, format="PNG")
+        buffer.seek(0)
 
-        # Reduce file size if needed
-        file_size = file.getbuffer().nbytes
-        if file_size > 500 * 1024:
-            image.save(file, format=format, optimize=True, quality=85)
-            file_size = file.getbuffer().nbytes
+        # Check if the file size is under 500KB
+        if buffer.getbuffer().nbytes > 500 * 1024:
+            await ctx.send("The file size is too large.")
+            return
 
-        # Seek to beginning of file and create discord.File object
-        file.seek(0)
-        name = name or attachment.filename.rsplit(".", 1)[0]
-        discord_file = discord.File(file, filename=name + ".png")
+        # Send the sticker request message
+        message = await ctx.send(f"Sticker request: {name}", file=discord.File(fp=buffer, filename="sticker.png"))
+        await message.add_reaction("✅")
+        await message.add_reaction("❌")
 
-        # Send file to channel
-        message = await ctx.send(file=discord_file)
-
-        # Add reactions to message
-        await message.add_reaction("\u2705") # Checkmark
-        await message.add_reaction("\u274C") # X
-
-        # Define check function for reaction
         def check(reaction, user):
-            return reaction.message.id == message.id and user.guild_permissions.administrator and str(reaction.emoji) in ["\u2705", "\u274C"]
+            return user.guild_permissions.administrator and reaction.message.id == message.id and str(reaction.emoji) in ["✅", "❌"]
 
-        # Wait for reaction
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=1800)
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=1800.0, check=check)
         except asyncio.TimeoutError:
-            # No reaction within 30 minutes
-            await ctx.send("Sticker request timed out.")
+            await ctx.send("Request timed out.")
         else:
-            # Reaction added
-            if str(reaction.emoji) == "\u2705":
-                # Checkmark reaction
-                # Create sticker in server
-                file.seek(0)
-                await self.bot.create_guild_sticker(guild=ctx.guild, name=name, image=file.read(), reason=f"Requested by {ctx.author}")
-                await ctx.send(f"Sticker {name} created.")
-            elif str(reaction.emoji) == "\u274C":
-                # X reaction
-                # Deny request
-                await ctx.send(f"Sticker {name} denied.")
+            if str(reaction.emoji) == "✅":
+                # Create the sticker
+                guild = ctx.guild
+                buffer.seek(0)
+                sticker = await guild.create_sticker(name=name, image=buffer.read(), description="")
+                await ctx.send(f"Sticker {sticker.name} has been created.")
+            else:
+                await ctx.send("Request denied.")
+
+def setup(bot):
+    bot.add_cog(RequestEmoji(bot))
