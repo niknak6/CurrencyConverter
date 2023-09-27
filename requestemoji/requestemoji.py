@@ -26,7 +26,7 @@ class RequestEmoji(commands.Cog):
     try: # Try to get the image data from the attachment
       image_data = await attachment.read()
     except Exception as e: # If something goes wrong, raise an error and send a message
-      raise errors.CommandError(f"Something went wrong while reading the image: {e}")
+      raise errors.UserFeedbackCheckFailure(f"Something went wrong while reading the image: {e}")
       await ctx.send("There was an error while reading the image. Please try again with a valid PNG or JPG file.")
       return
     
@@ -35,7 +35,7 @@ class RequestEmoji(commands.Cog):
       width, height = image.size
       format = image.format
       if width > 128 or height > 128 or format not in ["PNG", "JPEG"]: # If the image is too large or not in PNG or JPG format, try to resize or convert it
-        image = image.resize((128, 128), Image.ANTIALIAS) # Resize the image to 128x128 pixels
+        image = image.resize((128, 128), Image.LANCZOS) # Resize the image to 128x128 pixels using LANCZOS algorithm
         image = image.convert("RGBA") # Convert the image to RGBA mode
         format = "PNG" # Set the format to PNG
         output = io.BytesIO() # Create a BytesIO object to store the output
@@ -44,11 +44,11 @@ class RequestEmoji(commands.Cog):
         image_data = output.read() # Read the output as bytes
         output.close() # Close the output
       if len(image_data) > 256 * 1024: # If the image is still too large, raise an error and send a message
-        raise errors.CommandError("The image is too large. It must be smaller than 256 KB.")
+        raise errors.UserFeedbackCheckFailure("The image is too large. It must be smaller than 256 KB.")
         await ctx.send("The image is too large. It must be smaller than 256 KB.")
         return
     except Exception as e: # If something goes wrong, raise an error and send a message
-      raise errors.CommandError(f"Something went wrong while processing the image: {e}")
+      raise errors.UserFeedbackCheckFailure(f"Something went wrong while processing the image: {e}")
       await ctx.send("There was an error while processing the image. Please try again with a valid PNG or JPG file.")
       return
     
@@ -79,7 +79,7 @@ class RequestEmoji(commands.Cog):
         emoji = await ctx.guild.create_custom_emoji(name=name, image=image_data)
         await ctx.send(f"The emoji {emoji} was added successfully.")
       except Exception as e: # If something goes wrong, raise an error and send a message
-        raise errors.CommandError(f"Something went wrong while creating the emoji: {e}")
+        raise errors.UserFeedbackCheckFailure(f"Something went wrong while creating the emoji: {e}")
         await ctx.send(f"There was an error while creating the emoji. Please try again later.")
         return
     
