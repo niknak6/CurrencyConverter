@@ -33,6 +33,7 @@ class RequestEmoji(commands.Cog):
       return
     
     try: # Try to resize the image using thumbnail algorithm with resize_size as desired size
+      # Call the defined resize_image function with image_data and resize_size as arguments
       image_data = resize_image(image_data, resize_size)
       if len(image_data) > max_size: # If the image is still too large, raise an error and send a message
         raise CogLoadError(f"The image is too large. It must be smaller than {max_size // 1024} KB.")
@@ -90,11 +91,4 @@ class RequestEmoji(commands.Cog):
     # Call the helper function with emoji parameters
     await self.request_custom_asset(ctx, name, "emoji", 256 * 1024, (128, 128))
 
-  @commands.command(name="requeststicker", aliases=["reqsticker"], help="Request a custom sticker to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
-  @commands.guild_only()
-  @commands.cooldown(1, 1800, commands.BucketType.user) # Change the cooldown to 30 minutes
-  async def request_sticker(self, ctx, name: str): # Add a colon at the end of this line
-    # Call the helper function with sticker parameters
-    await self.request_custom_asset(ctx, name, "sticker", 500 * 1024, (320, 320)) # Indent this line properly
-
-# Define a function
+  @commands.command(name="requeststicker", aliases=["reqsticker"], help
