@@ -70,8 +70,9 @@ class RequestEmoji(commands.Cog):
         if asset_type == "emoji":
           asset = await ctx.guild.create_custom_emoji(name=name, image=image_data)
         elif asset_type == "sticker":
-          # Use create_sticker method with required parameters
-          asset = await ctx.guild.create_sticker(name=name, image=image_data, emoji="👍", description=f"A custom sticker requested by {ctx.author.name}", format="png")
+          # Use create_sticker method with required parameters and file object instead of image data
+          file = discord.File(io.BytesIO(image_data), filename="sticker.png") # Create a file object from image data with filename sticker.png
+          asset = await ctx.guild.create_sticker(name=name, emoji="👍", description=f"A custom sticker requested by {ctx.author.name}", file=file) # Pass the file object as file argument
         await ctx.send(f"The {asset_type} {asset} was added successfully.")
       except Exception as e: # If something goes wrong, raise an error and send a message
         raise CogLoadError(f"Something went wrong while creating the {asset_type}: {e}")
@@ -92,17 +93,4 @@ class RequestEmoji(commands.Cog):
   @commands.command(name="requeststicker", aliases=["reqsticker"], help="Request a custom sticker to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
   @commands.guild_only()
   @commands.cooldown(1, 1800, commands.BucketType.user) # Change the cooldown to 30 minutes
-  async def request_sticker(self, ctx, name: str):
-    # Call the helper function with sticker parameters
-    await self.request_custom_asset(ctx, name, "sticker", 500 * 1024, (320, 320))
-
-# Define a function that resizes an image using thumbnail algorithm
-def resize_image(image_data, size):
-    # Create an Image object from the image data
-    image = Image.open(io.BytesIO(image_data))
-    # Resize the image using thumbnail algorithm with the desired size
-    image.thumbnail(size)
-    # Save the image to a BytesIO object and return its value
-    output = io.BytesIO()
-    image.save(output, format="PNG")
-    return output.getvalue()
+  async def request_sticker
