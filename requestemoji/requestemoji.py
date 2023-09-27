@@ -47,14 +47,14 @@ class RequestEmoji(commands.Cog):
     async def on_raw_reaction_add(self, payload):
         """Handle the reactions on the request messages"""
         # Check if the reaction is on a request message and from an admin
-        if (payload.message_id, payload.channel_id) in self.requests and await commands.has_any_guild_permissions(administrator=True, manage_messages=True, manage_roles=True).predicate(await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id), self.bot.get_user(payload.user_id)): # Use this decorator instead of checks.admin_or_permissions().predicate
+        if (payload.message_id, payload.channel_id) in self.requests and await commands.has_any_guild_permissions(administrator=True, manage_messages=True, manage_roles=True).predicate(await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id), payload.member): # Use payload.member instead of self.bot.get_user(payload.user_id)
             # Get the channel and message objects
             channel = self.bot.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
             # Get the requester id, sticker name and url from the dictionary
             requester_id, sticker_name, sticker_url = self.requests[(payload.message_id, payload.channel_id)]
             # Get the user who reacted
-            user = self.bot.get_user(payload.user_id)
+            user = payload.member # Use payload.member instead of self.bot.get_user(payload.user_id)
             # Check if the reaction is a checkmark or an x
             if payload.emoji.name == "✅":
                 # Approve the request and create the sticker
