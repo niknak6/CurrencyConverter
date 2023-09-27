@@ -194,4 +194,13 @@ class RequestEmoji(commands.Cog):
                             )
                             embed.set_image(url=sticker.url)
                             await channel.send(embed=embed)
-                        elif file
+                        elif file.filename == "emoji.png":
+                            emoji = await guild.create_custom_emoji(
+                                name=name,
+                                image=await file.read(),
+                                reason=f"Approved by {member}",
+                            )
+                            # Send a success message with the emoji
+                            embed = discord.Embed(
+                                title=f"Emoji approved",
+                                description=f"{member.mention} has approved {message.author
