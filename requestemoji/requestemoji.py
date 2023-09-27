@@ -84,5 +84,5 @@ class RequestEmoji(commands.Cog):
         return image.resize((new_width, new_height), Image.ANTIALIAS)
 
 # Use setup function to register the cog with the bot
-def setup(bot):
+def setup(bot)
     bot.add_cog(RequestEmoji(bot))
