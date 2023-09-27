@@ -63,7 +63,7 @@ class RequestEmoji (commands.Cog):
     image_bytes.seek (0)
 
     # Create a discord.File object from the bytes and the filename
-    file = discord.File (image_bytes, filename=attachment.filename)
+    file = discord.File (file_data, filename=attachment.filename)
 
     # Send a confirmation message with the sticker preview and reactions
     message = await ctx.send (
@@ -119,7 +119,7 @@ class RequestEmoji (commands.Cog):
     image_bytes.seek (0)
 
     # Create a discord.File object from the bytes and the filename
-    file = discord.File (image_bytes, filename=attachment.filename)
+    file = discord.File (file_data, filename=attachment.filename)
 
     # Send a confirmation message with the emoji preview and reactions
     message = await ctx.send (
@@ -153,10 +153,15 @@ class RequestEmoji (commands.Cog):
           request_type, name = message.content.split ("with name")
           request_type = request_type.strip ().split () [-1]
           name = name.strip ()
-          file = message.attachments [0]
+          attachment = message.attachments [0]
 
           # Create a custom sticker or emoji with the request information
           if request_type == "sticker":
+            # Get the file data from the attachment as bytes
+            file_data = await attachment.read ()
+            # Create a discord.File object from the bytes and the filename
+            file = discord.File (file_data, filename=attachment.filename)
+            # Create a sticker using the file and other parameters
             sticker = await guild.create_sticker (
               name=name,
               description="Requested by " + str (member),
@@ -169,9 +174,14 @@ class RequestEmoji (commands.Cog):
               f"{member.mention} has approved {message.author.mention}'s request for a sticker with name {name}. Here is the sticker: {sticker}"
             )
           elif request_type == "emoji":
+            # Get the file data from the attachment as bytes
+            file_data = await attachment.read ()
+            # Create a discord.File object from the bytes and the filename
+            file = discord.File (file_data, filename=attachment.filename)
+            # Create an emoji using the file and other parameters
             emoji = await guild.create_custom_emoji (
               name=name,
-              image=await file.read (),
+              image=file_data,
               reason="Approved by " + str (member),
             )
             # Send a success message with the emoji
