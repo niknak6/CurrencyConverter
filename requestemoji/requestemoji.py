@@ -1,11 +1,11 @@
-from discord.ext import commands
+from discord.ext.commands import Cog
 from PIL import Image
 import io
 import requests
 import asyncio
 
-# Inherit from commands.Cog base class
-class RequestEmoji(commands.Cog):
+# Inherit from Cog base class
+class RequestEmoji(Cog):
     def __init__(self, bot):
         self.bot = bot
 
