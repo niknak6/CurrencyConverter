@@ -142,4 +142,5 @@ class RequestEmoji(commands.Cog):
             except discord.HTTPException as e:
                 await ctx.send(f"{ctx.author.mention}, your emoji request has failed due to an error: {e}")
                 return
-        elif str(reaction.emoji) == "\
+        elif str(reaction.emoji) == "\u274c": # cross mark
+            await ctx.send(f"{ctx.author.mention}, your emoji request has been denied by {user.mention}.")
