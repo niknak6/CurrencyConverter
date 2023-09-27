@@ -9,7 +9,7 @@ class RequestEmoji(commands.Cog):
 
     @commands.command()
     async def requeststicker(self, ctx, name=None):
-        # Check if message has attachment
+        # Check if message has attachments
         if not ctx.message.attachments:
             await ctx.send("Please attach an image file.")
             return
