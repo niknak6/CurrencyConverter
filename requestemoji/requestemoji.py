@@ -1,168 +1,190 @@
 # Import the necessary modules
-from redbot.core import commands, checks
-from redbot.core.bot import Red
-from PIL import Image
 import discord
-import io
+from redbot.core import commands
+from redbot.core.utils.chat_formatting import humanize_list
+from PIL import Image
+from resizeimage import resizeimage
 
-# Define the cog class
-class RequestEmoji(commands.Cog):
-    """A cog that allows users to request custom emojis and stickers."""
+# Define a class for the cog
+class RequestEmoji (commands.Cog):
+  # Initialize the cog with the bot instance
+  def __init__ (self, bot):
+    self.bot = bot
+    # You can also initialize a database or a config object here to store the requests and approvals
 
-    def __init__(self, bot: Red):
-        self.bot = bot
+  # Define a command group for requesting stickers or emojis
+  @commands.group ()
+  async def request (self, ctx):
+    # If no subcommand is invoked, show the help message
+    if ctx.invoked_subcommand is None:
+      await ctx.send_help ()
 
-    # Define the command group
-    @commands.group()
-    async def request(self, ctx: commands.Context):
-        """Request a custom emoji or sticker."""
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help()
+  # Define a subcommand for requesting stickers
+  @request.command ()
+  async def sticker (self, ctx, name: str):
+    # Check if the name is valid (at least 2 characters)
+    if len (name) < 2:
+      await ctx.send ("The sticker name must be at least 2 characters.")
+      return
 
-    # Define the subcommand for requesting an emoji
-    @request.command()
-    async def emoji(self, ctx: commands.Context, name: str):
-        """Request a custom emoji with a given name."""
-        # Check if the user attached an image file
-        if not ctx.message.attachments:
-            await ctx.send("Please attach an image file to your message.")
-            return
+    # Check if there is an attachment in the message
+    if not ctx.message.attachments:
+      await ctx.send ("You must attach an image file for the sticker.")
+      return
 
-        # Get the first attachment and its filename
-        attachment = ctx.message.attachments[0]
-        filename = attachment.filename
+    # Get the attachment and check if it is an image file
+    attachment = ctx.message.attachments [0]
+    if not attachment.content_type.startswith ("image/"):
+      await ctx.send ("The attachment must be an image file.")
+      return
 
-        # Check if the filename has a valid extension
-        if not filename.endswith((".png", ".jpg", ".jpeg", ".gif")):
-            await ctx.send("Please use a valid image format (.png, .jpg, .jpeg, or .gif).")
-            return
+    # Download the attachment as bytes
+    image_bytes = await attachment.read ()
 
-        # Check if the file size is within the limit
-        if attachment.size > 256 * 1024:
-            await ctx.send("Please use an image file that is less than 256 KB.")
-            return
+    # Open the image with PIL and check its size and format
+    image = Image.open (image_bytes)
+    width, height = image.size
+    format = image.format
 
-        # Download the image file as bytes
-        image_bytes = await attachment.read()
+    # Check if the image size is exactly 320x320
+    if width != 320 or height != 320:
+      # Resize the image using resizeimage library with mode 'contain'
+      # This will preserve the aspect ratio and fill the background with transparent pixels
+      image = resizeimage.resize_contain (image, [320, 320])
 
-        # Open the image file with PIL and get its size
-        image = Image.open(io.BytesIO(image_bytes))
-        width, height = image.size
+    # Check if the image format is PNG or APNG
+    if format not in ["PNG", "APNG"]:
+      # Convert the image format to PNG
+      image = image.convert ("RGBA")
 
-        # Check if the image size is within the range
-        if not (32 <= width <= 128 and 32 <= height <= 128):
-            # Resize the image to fit within the range, preserving the aspect ratio and quality
-            image.thumbnail((128, 128), Image.LANCZOS)
-            # Save the resized image as bytes in PNG format
-            resized_bytes = io.BytesIO()
-            image.save(resized_bytes, format="PNG")
-            resized_bytes.seek(0)
-            # Create a new discord.File object with the resized bytes and the same filename
-            resized_file = discord.File(resized_bytes, filename=filename)
-        else:
-            # Use the original file as it is
-            resized_file = attachment.to_file()
+    # Save the image as bytes again
+    image_bytes = io.BytesIO ()
+    image.save (image_bytes, format="PNG")
+    image_bytes.seek (0)
 
-        # Send the request message with the file and the reactions
-        request_message = await ctx.send(f"{ctx.author.mention} has requested a custom emoji named {name}.", file=resized_file)
-        await request_message.add_reaction("✅")
-        await request_message.add_reaction("❌")
+    # Create a discord.File object from the bytes
+    file = discord.File (image_bytes, filename="sticker.png")
 
-        # Wait for an administrator to react with either checkmark or x
-        def check(reaction: discord.Reaction, user: discord.Member):
-            return user.guild_permissions.administrator and reaction.message.id == request_message.id and str(reaction.emoji) in ("✅", "❌")
+    # Send a confirmation message with the sticker preview and reactions
+    message = await ctx.send (
+      f"{ctx.author.mention} has requested a sticker with name {name}. Here is a preview:",
+      file=file,
+    )
+    await message.add_reaction ("\u2705") # Checkmark emoji
+    await message.add_reaction ("\u274c") # Cross emoji
 
-        try:
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=1800.0, check=check)
-        except asyncio.TimeoutError:
-            # If no one reacts within 30 minutes, delete the request message and notify the user
-            await request_message.delete()
-            await ctx.send(f"{ctx.author.mention}, your request has timed out. Please try again later.")
-        else:
-            # If someone reacts, check which emoji they used
-            if str(reaction.emoji) == "✅":
-                # If they used checkmark, try to create the emoji and notify the user and the administrator
-                try:
-                    emoji = await ctx.guild.create_custom_emoji(name=name, image=resized_bytes.getvalue())
-                    await ctx.send(f"{ctx.author.mention}, your request has been approved by {user.mention}. The custom emoji {emoji} has been created.")
-                except discord.HTTPException as e:
-                    # If there is an error in creating the emoji, notify the user and the administrator
-                    await ctx.send(f"{ctx.author.mention}, your request has been approved by {user.mention}, but there was an error in creating the custom emoji: {e}")
-            elif str(reaction.emoji) == "❌":
-                # If they used x, delete the request message and notify the user and the administrator
-                await request_message.delete()
-                await ctx.send(f"{ctx.author.mention}, your request has been denied by {user.mention}.")
+    # You can also store the request information in a database or a config object here
 
-    # Define the subcommand for requesting a sticker
-    @request.command()
-    async def sticker(self, ctx: commands.Context, name: str):
-        """Request a custom sticker with a given name."""
-        # Check if the user attached an image file
-        if not ctx.message.attachments:
-            await ctx.send("Please attach an image file to your message.")
-            return
+  # Define a subcommand for requesting emojis
+  @request.command ()
+  async def emoji (self, ctx, name: str):
+    # Check if the name is valid (at least 2 characters)
+    if len (name) < 2:
+      await ctx.send ("The emoji name must be at least 2 characters.")
+      return
 
-        # Get the first attachment and its filename
-        attachment = ctx.message.attachments[0]
-        filename = attachment.filename
+    # Check if there is an attachment in the message
+    if not ctx.message.attachments:
+      await ctx.send ("You must attach an image file for the emoji.")
+      return
 
-        # Check if the filename has a valid extension
-        if not filename.endswith((".png", ".jpg", ".jpeg", ".gif")):
-            await ctx.send("Please use a valid image format (.png, .jpg, .jpeg, or .gif).")
-            return
+    # Get the attachment and check if it is an image file
+    attachment = ctx.message.attachments [0]
+    if not attachment.content_type.startswith ("image/"):
+      await ctx.send ("The attachment must be an image file.")
+      return
 
-        # Check if the file size is within the limit
-        if attachment.size > 500 * 1024:
-            await ctx.send("Please use an image file that is less than 500 KB.")
-            return
+    # Download the attachment as bytes
+    image_bytes = await attachment.read ()
 
-        # Download the image file as bytes
-        image_bytes = await attachment.read()
+    # Open the image with PIL and check its size and format
+    image = Image.open (image_bytes)
+    width, height = image.size
+    format = image.format
 
-        # Open the image file with PIL and get its size
-        image = Image.open(io.BytesIO(image_bytes))
-        width, height = image.size
+    # Check if the image size is between 32x32 and 128x128
+    if width < 32 or height < 32 or width > 128 or height > 128:
+      # Resize the image using resizeimage library with mode 'thumbnail'
+      # This will preserve the aspect ratio and fit the image within the bounds
+      image = resizeimage.resize_thumbnail (image, [128, 128])
 
-        # Check if the image size is exactly 320x320
-        if not (width == height == 320):
-            # Resize the image to be 320x320, cropping the excess parts and preserving the quality
-            image = image.resize((320, 320), Image.LANCZOS)
-            # Save the resized image as bytes in PNG format
-            resized_bytes = io.BytesIO()
-            image.save(resized_bytes, format="PNG")
-            resized_bytes.seek(0)
-            # Create a new discord.File object with the resized bytes and the same filename
-            resized_file = discord.File(resized_bytes, filename=filename)
-        else:
-            # Use the original file as it is
-            resized_file = attachment.to_file()
+    # Check if the image format is PNG or GIF
+    if format not in ["PNG", "GIF"]:
+      # Convert the image format to PNG
+      image = image.convert ("RGBA")
 
-        # Send the request message with the file and the reactions
-        request_message = await ctx.send(f"{ctx.author.mention} has requested a custom sticker named {name}.", file=resized_file)
-        await request_message.add_reaction("✅")
-        await request_message.add_reaction("❌")
+    # Save the image as bytes again
+    image_bytes = io.BytesIO ()
+    image.save (image_bytes, format="PNG")
+    image_bytes.seek (0)
 
-        # Wait for an administrator to react with either checkmark or x
-        def check(reaction: discord.Reaction, user: discord.Member):
-            return user.guild_permissions.administrator and reaction.message.id == request_message.id and str(reaction.emoji) in ("✅", "❌")
+    # Create a discord.File object from the bytes
+    file = discord.File (image_bytes, filename="emoji.png")
 
-        try:
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=1800.0, check=check)
-        except asyncio.TimeoutError:
-            # If no one reacts within 30 minutes, delete the request message and notify the user
-            await request_message.delete()
-            await ctx.send(f"{ctx.author.mention}, your request has timed out. Please try again later.")
-        else:
-            # If someone reacts, check which emoji they used
-            if str(reaction.emoji) == "✅":
-                # If they used checkmark, try to create the sticker and notify the user and the administrator
-                try:
-                    sticker = await ctx.guild.create_custom_sticker(name=name, image=resized_bytes.getvalue())
-                    await ctx.send(f"{ctx.author.mention}, your request has been approved by {user.mention}. The custom sticker {sticker} has been created.")
-                except discord.HTTPException as e:
-                    # If there is an error in creating the sticker, notify the user and the administrator
-                    await ctx.send(f"{ctx.author.mention}, your request has been approved by {user.mention}, but there was an error in creating the custom sticker: {e}")
-            elif str(reaction.emoji) == "❌":
-                # If they used x, delete the request message and notify the user and the administrator
-                await request_message.delete()
-                await ctx.send(f"{ctx.author.mention}, your request has been denied by {user.mention}.")
+    # Send a confirmation message with the emoji preview and reactions
+    message = await ctx.send (
+      f"{ctx.author.mention} has requested an emoji with name {name}. Here is a preview:",
+      file=file,
+    )
+    await message.add_reaction ("\u2705") # Checkmark emoji
+    await message.add_reaction ("\u274c") # Cross emoji
+
+    # You can also store the request information in a database or a config object here
+
+  # Define an event listener for reaction add
+  @commands.Cog.listener ()
+  async def on_raw_reaction_add (self, payload):
+    # Check if the reaction is on a request message
+    # You can use the database or the config object to check this
+    # For simplicity, I will assume that the request messages have a specific channel ID
+    if payload.channel_id == REQUEST_CHANNEL_ID:
+      # Get the guild, member, message, and emoji from the payload
+      guild = self.bot.get_guild (payload.guild_id)
+      member = guild.get_member (payload.user_id)
+      channel = guild.get_channel (payload.channel_id)
+      message = await channel.fetch_message (payload.message_id)
+      emoji = payload.emoji
+
+      # Check if the member has administrator permission
+      if member.guild_permissions.administrator:
+        # Check if the emoji is a checkmark or a cross
+        if emoji.name == "\u2705": # Checkmark emoji
+          # Approve the request
+          # Get the request information from the message or the database or the config object
+          # For simplicity, I will assume that the request information is in the message content and attachment
+          request_type, name = message.content.split ("with name")
+          request_type = request_type.strip ().split () [-1]
+          name = name.strip ()
+          file = message.attachments [0]
+
+          # Create a custom sticker or emoji with the request information
+          if request_type == "sticker":
+            sticker = await guild.create_sticker (
+              name=name,
+              description="Requested by " + str (member),
+              emoji="\u2705", # Checkmark emoji as expression
+              file=file,
+              reason="Approved by " + str (member),
+            )
+            # Send a success message with the sticker
+            await channel.send (
+              f"{member.mention} has approved {message.author.mention}'s request for a sticker with name {name}. Here is the sticker: {sticker}"
+            )
+          elif request_type == "emoji":
+            emoji = await guild.create_custom_emoji (
+              name=name,
+              image=await file.read (),
+              reason="Approved by " + str (member),
+            )
+            # Send a success message with the emoji
+            await channel.send (
+              f"{member.mention} has approved {message.author.mention}'s request for an emoji with name {name}. Here is the emoji: {emoji}"
+            )
+
+          # Delete the request message
+          await message.delete ()
+
+        elif emoji.name == "\u274c": # Cross emoji
+          # Deny the request
+          # Send a failure message with the reason
+          await channel.send 
