@@ -66,11 +66,12 @@ class RequestEmoji(commands.Cog):
     
     # If the reaction is a checkmark, try to create the asset and send a message to confirm
     if reaction.emoji == "\u2705":
-      try: # Try to create the asset using ctx.guild.create_custom_emoji() or ctx.guild.create_custom_sticker() depending on the asset type
+      try: # Try to create the asset using ctx.guild.create_custom_emoji() or ctx.guild.create_sticker() depending on the asset type
         if asset_type == "emoji":
           asset = await ctx.guild.create_custom_emoji(name=name, image=image_data)
         elif asset_type == "sticker":
-          asset = await ctx.guild.create_custom_sticker(name=name, image=image_data)
+          # Use create_sticker method with required parameters
+          asset = await ctx.guild.create_sticker(name=name, image=image_data, emoji="👍", description=f"A custom sticker requested by {ctx.author.name}", format="png")
         await ctx.send(f"The {asset_type} {asset} was added successfully.")
       except Exception as e: # If something goes wrong, raise an error and send a message
         raise CogLoadError(f"Something went wrong while creating the {asset_type}: {e}")
