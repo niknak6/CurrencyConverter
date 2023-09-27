@@ -1,57 +1,76 @@
-import discord
-from discord.ext import commands
-from PIL import Image
-from io import BytesIO
-import asyncio
+# Import the necessary modules
+from redbot.core import commands, checks
+from discord.ext import tasks
+import discord, asyncio
 
+# Define the cog class
 class RequestEmoji(commands.Cog):
+    """A cog that allows users to request custom stickers"""
+
     def __init__(self, bot):
         self.bot = bot
+        # A dictionary that stores the requests as (message_id, channel_id): (requester_id, sticker_name, sticker_url)
+        self.requests = {}
 
     @commands.command()
-    async def requeststicker(self, ctx, *, name: str):
-        if len(ctx.message.attachments) == 0:
-            await ctx.send("Please attach an image.")
-            return
+    async def requeststicker(self, ctx, sticker_name: str):
+        """Request a custom sticker with an attachment"""
+        # Check if the message has an attachment
+        if not ctx.message.attachments:
+            return await ctx.send("You need to attach an image file to request a sticker.")
+        
+        # Get the attachment url
+        sticker_url = ctx.message.attachments[0].url
 
-        image = await ctx.message.attachments[0].read()
-        image = Image.open(BytesIO(image))
+        # Send the request message with reactions
+        request_msg = await ctx.send(f"{ctx.author.mention} has requested a sticker named {sticker_name}.\n{sticker_url}")
+        for emoji in ("✅", "❌"): # Checkmark and X emojis
+            await request_msg.add_reaction(emoji)
 
-        # Resize the image if it's too big
-        if image.size != (320, 320):
-            image.thumbnail((320, 320))
+        # Store the request in the dictionary
+        self.requests[(request_msg.id, request_msg.channel.id)] = (ctx.author.id, sticker_name, sticker_url)
 
-        # Save the image as a PNG
-        buffer = BytesIO()
-        image.save(buffer, format="PNG")
-        buffer.seek(0)
+        # Start a timer to delete the request after 30 minutes
+        self.bot.loop.create_task(self.delete_request(request_msg))
 
-        # Check if the file size is under 500KB
-        if buffer.getbuffer().nbytes > 500 * 1024:
-            await ctx.send("The file size is too large.")
-            return
+    async def delete_request(self, request_msg):
+        """Delete a request after 30 minutes"""
+        await asyncio.sleep(1800) # Wait for 30 minutes
+        # Check if the request is still in the dictionary
+        if (request_msg.id, request_msg.channel.id) in self.requests:
+            # Delete the request message and remove it from the dictionary
+            await request_msg.delete()
+            del self.requests[(request_msg.id, request_msg.channel.id)]
 
-        # Send the sticker request message
-        message = await ctx.send(f"Sticker request: {name}", file=discord.File(fp=buffer, filename="sticker.png"))
-        await message.add_reaction("✅")
-        await message.add_reaction("❌")
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        """Handle the reactions on the request messages"""
+        # Check if the reaction is on a request message and from an admin
+        if (payload.message_id, payload.channel_id) in self.requests and await checks.admin_or_permissions().predicate(await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id), self.bot.get_user(payload.user_id)):
+            # Get the channel and message objects
+            channel = self.bot.get_channel(payload.channel_id)
+            message = await channel.fetch_message(payload.message_id)
+            # Get the requester id, sticker name and url from the dictionary
+            requester_id, sticker_name, sticker_url = self.requests[(payload.message_id, payload.channel_id)]
+            # Get the user who reacted
+            user = self.bot.get_user(payload.user_id)
+            # Check if the reaction is a checkmark or an x
+            if payload.emoji.name == "✅":
+                # Approve the request and create the sticker
+                await message.channel.send(f"{user.mention} has approved the sticker request from <@{requester_id}>.")
+                try:
+                    await message.guild.create_custom_emoji(name=sticker_name, image=await self.bot.session.get(sticker_url).read())
+                    await message.channel.send(f"The sticker {sticker_name} has been created.")
+                except discord.HTTPException as e:
+                    await message.channel.send(f"An error occurred while creating the sticker: {e}")
+            elif payload.emoji.name == "❌":
+                # Deny the request and send a message
+                await message.channel.send(f"{user.mention} has denied the sticker request from <@{requester_id}>.")
+            
+            # Delete the request message and remove it from the dictionary
+            await message.delete()
+            del self.requests[(payload.message_id, payload.channel_id)]
 
-        def check(reaction, user):
-            return user.guild_permissions.administrator and reaction.message.id == message.id and str(reaction.emoji) in ["✅", "❌"]
-
-        try:
-            reaction, user = await self.bot.wait_for('reaction_add', timeout=1800.0, check=check)
-        except asyncio.TimeoutError:
-            await ctx.send("Request timed out.")
-        else:
-            if str(reaction.emoji) == "✅":
-                # Create the sticker
-                guild = ctx.guild
-                buffer.seek(0)
-                sticker = await guild.create_sticker(name=name, image=buffer.read(), description="")
-                await ctx.send(f"Sticker {sticker.name} has been created.")
-            else:
-                await ctx.send("Request denied.")
-
+# Add the cog to the bot
 def setup(bot):
     bot.add_cog(RequestEmoji(bot))
