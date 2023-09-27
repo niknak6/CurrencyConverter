@@ -1,4 +1,4 @@
-from .RequestEmoji import RequestEmoji
+from .requestemoji import RequestEmoji
 
 
 async def setup(bot):
