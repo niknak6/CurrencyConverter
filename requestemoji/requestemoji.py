@@ -204,4 +204,6 @@ class RequestEmoji(commands.Cog):
                             embed = discord.Embed(
                                 title=f"Emoji approved",
                                 description=f"{member.mention} has approved {message.author.mention}'s request for an emoji with name {name}.",
-                                color
+                                color=discord.Color.green(),
+                            )
+                            embed
