@@ -1,129 +1,207 @@
+# Import discord.py and Redbot
 import discord
-from redbot.core import commands, checks, errors
-from redbot.core.utils.chat_formatting import pagify
-from discord.ext.commands.converter import EmojiConverter
+from redbot.core import commands, checks, Config
+
+# Import PIL for image resizing
 from PIL import Image
+
+# Import io for bytes manipulation
 import io
-import asyncio
 
-# Define a helper function that resizes an image using thumbnail algorithm with resize_size as desired size
-def resize_image(image_data, resize_size):
-  # Create an Image object from the image data
-  image = Image.open(io.BytesIO(image_data))
-  # Resize the image using thumbnail algorithm with resize_size as desired size
-  image.thumbnail(resize_size)
-  # Save the image to a bytes-like object and return it
-  output = io.BytesIO()
-  image.save(output, format="PNG")
-  return output.getvalue()
+class RequestEmoji (commands.Cog):
+    """A cog that allows users to request emojis and stickers."""
 
-class Request(commands.Cog):
-  """A cog that allows users to request custom emojis and stickers."""
+    def __init__ (self, bot):
+        self.bot = bot
+        # Create a Config object for this cog
+        self.config = Config.get_conf (self, identifier=1234567890)
+        # Register some default settings
+        self.config.register_global (
+            # The emoji used for approval
+            approve_emoji = "✅",
+            # The emoji used for denial
+            deny_emoji = "❌",
+            # The timeout in seconds for requests
+            timeout = 1800
+        )
 
-  def __init__(self, bot):
-    self.bot = bot
+    @commands.Cog.listener ()
+    async def on_raw_reaction_add (self, payload):
+        """A listener that handles the reactions on request messages."""
+        # Get the reaction emoji, message ID, user ID, and guild ID from the payload
+        emoji = payload.emoji
+        message_id = payload.message_id
+        user_id = payload.user_id
+        guild_id = payload.guild_id
 
-  # Define a helper function that handles the common logic for requesting custom assets
-  async def request_custom_asset(self, ctx, name: str, asset_type: str, max_size: int, resize_size: tuple):
-    # Check if the name argument is valid for an asset name
-    if not (2 <= len(name) <= 32 and name.isalnum() or "_"):
-      raise commands.BadArgument(f"The name must be between 2 and 32 characters long and consist of alphanumeric characters and underscores only.")
-    
-    # Check if the attachment argument is valid for an asset image
-    attachment = ctx.message.attachments[0] if ctx.message.attachments else None # Get the first attachment or None
-    if not attachment: # If no attachment, use the author's avatar as a fallback
-      attachment = ctx.author.avatar_url_as(format="png", size=resize_size[0])
-    try: # Try to get the image data from the attachment
-      image_data = await attachment.read()
-    except Exception as e: # If something goes wrong, raise an error and send a message
-      raise errors.CogLoadError(f"Something went wrong while reading the image: {e}")
-      await ctx.send("There was an error while reading the image. Please try again with a valid PNG or JPG file.")
-      return
-    
-    try: # Try to resize the image using thumbnail algorithm with resize_size as desired size
-      image_data = resize_image(image_data, resize_size)
-      if len(image_data) > max_size: # If the image is still too large, raise an error and send a message
-        raise errors.CogLoadError(f"The image is too large. It must be smaller than {max_size // 1024} KB.")
-        await ctx.send(f"The image is too large. It must be smaller than {max_size // 1024} KB.")
-        return
-    except Exception as e: # If something goes wrong, raise an error and send a message
-      raise errors.CogLoadError(f"Something went wrong while processing the image: {e}")
-      await ctx.send("There was an error while processing the image. Please try again with a valid PNG or JPG file.")
-      return
-    
-    # Create an embed message that contains the name and image of the requested asset and send it to the same channel
-    embed = discord.Embed(title=f"{asset_type.capitalize()} request: {name}", description=f"{ctx.author.mention} has requested a custom {asset_type} with this name and image. An Officer or Guild Master can approve or deny this request by reacting with a checkmark or x emoji.", color=discord.Color.blue())
-    embed.set_image(url=f"attachment://{asset_type}.png") # Set the embed image to the attachment with filename asset_type.png
-    embed.set_footer(text="This request will expire in 30 minutes.") # Set the embed footer to show the expiration time
-    file = discord.File(io.BytesIO(image_data), filename=f"{asset_type}.png") # Create a discord File object from the image data with filename asset_type.png
-    message = await ctx.send(embed=embed, file=file) # Send the embed message with the file attachment
-    
-    # Add a checkmark and x emoji as reactions to the embed message using message.add_reaction()
-    await message.add_reaction("\u2705") # Checkmark emoji
-    await message.add_reaction("\u274c") # X emoji
-    
-    # Wait for a reaction from an Officer or Guild Master
-    check = lambda reaction, user: (reaction.message.id == message.id and user != self.bot.user and user.top_role.name in ["Officer", "Guild Master"] and reaction.emoji in ["\u2705", "\u274c"]) # Use user.top_role.name to check if the user has a mod or permissions role
-    
-    try: # Try to wait for a reaction that passes the check function within 30 minutes
-      reaction, user = await self.bot.wait_for("reaction_add", timeout=1800.0, check=check) # Use 1800.0 as timeout value
-    except asyncio.TimeoutError: # If no reaction is received within the time limit, send a message to inform that the request expired
-      await ctx.send(f"The {asset_type} request for {name} has expired after 30 minutes.") # Use f-string to insert variables into string
-      return
-    
-    # If the reaction is a checkmark, try to create the asset and send a message to confirm
-    if reaction.emoji == "\u2705":
-      try: # Try to create the asset using ctx.guild.create_custom_emoji() or ctx.guild.create_sticker() depending on the asset type
-        if asset_type == "emoji":
-          asset = await ctx.guild.create_custom_emoji(name=name, image=image_data)
-        elif asset_type == "sticker":
-          file = discord.File(io.BytesIO(image_data), filename="sticker.png") # Create a file object from image data with filename sticker.png
-          asset = await ctx.guild.create_sticker(name=name, emoji="👍", description=f"A custom sticker requested by {ctx.author.name}", file=file) # Pass the file object as file argument
-        await ctx.send(f"The {asset_type} {asset} was added successfully.")
-      except Exception as e: # If something goes wrong, raise an error and send a message
-        raise errors.CogLoadError(f"Something went wrong while creating the {asset_type}: {e}")
-        await ctx.send(f"There was an error while creating the {asset_type}. Please try again later.")
-        return
-    
-    # If the reaction is an x, send a message to inform that the request was denied
-    if reaction.emoji == "\u274c":
-      await ctx.send(f"The {asset_type} request for {name} was denied by {user.mention}.")
+        # Get the guild object from the bot
+        guild = self.bot.get_guild (guild_id)
 
-  @commands.group(name="request", aliases=["req"], help="Request a custom emoji or sticker to be added to the server.", usage="<subcommand> [arguments]", cooldown_after_parsing=True, invoke_without_command=True)
-  @commands.guild_only()
-  @commands.max_concurrency(1, commands.BucketType.user) # Limit the number of concurrent invocations per user
-  async def request(self, ctx):
-    # If no subcommand is invoked, send a help message with the available subcommands
-    await ctx.send_help(self.request)
+        # Check if the guild is valid
+        if guild is None:
+            return
 
-  @request.command(name="emoji", aliases=["emote"], help="Request a custom emoji to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
-  @commands.cooldown(1, 1800, commands.BucketType.user) # Change the cooldown to 30 minutes
+        # Get the user object from the guild
+        user = guild.get_member (user_id)
 
-  # Define a custom check function that uses discord.Permissions class to check if the bot has the permission to manage emojis
-  def bot_has_manage_emojis():
-    def predicate(ctx):
-      bot_permissions = discord.Permissions(ctx.guild.me.guild_permissions.value) # Create a permissions object from bot's guild permissions value
-      return bot_permissions.manage_emojis # Return True if bot has manage_emojis permission
-    return commands.check(predicate) # Close the parenthesis here
+        # Check if the user is valid and not a bot
+        if user is None or user.bot:
+            return
 
-  @bot_has_manage_emojis() # Use the custom check function here instead of commands.bot_has_permissions(manage_emojis=True)
-  @commands.has_permissions(manage_emojis=True) # Check if the user has the permission to manage emojis
-  async def request_emoji(self, ctx, name: str):
-    # Call the helper function with emoji parameters
-    await self.request_custom_asset(ctx, name, "emoji", 256 * 1024, (128, 128))
+        # Get the message object from the channel
+        channel = guild.get_channel (payload.channel_id)
+        message = await channel.fetch_message (message_id)
 
-  @request.command(name="sticker", aliases=["stick"], help="Request a custom sticker to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
-  @commands.cooldown(1, 1800, commands.BucketType.user) # Change the cooldown to 30 minutes
+        # Check if the message is valid and has an embed
+        if message is None or not message.embeds:
+            return
 
-  # Define a custom check function that uses discord.Permissions class to check if the bot has the permission to manage stickers
-  def bot_has_manage_stickers():
-    def predicate(ctx):
-      bot_permissions = discord.Permissions(ctx.guild.me.guild_permissions.value) # Create a permissions object from bot's guild permissions value
-      return bot_permissions.manage_stickers # Return True if bot has manage_stickers permission
-    return commands.check(predicate) # Close the parenthesis here
+        # Get the embed object from the message
+        embed = message.embeds[0]
 
-  @bot_has_manage_stickers() # Use the custom check function here instead of commands.bot_has_permissions(manage_stickers=True)
-  @commands.has_permissions(manage_stickers=True) # Check if the user has the permission to manage stickers
-  async def request_sticker(self, ctx, name: str):
-    # Call the helper function with sticker parameters
-    await self.request_custom_asset(ctx, name, "sticker", 512 * 1024, (512, 512))
+        # Check if the embed has an author field with a valid ID
+        if not embed.author or not embed.author.url:
+            return
+
+        # Get the author ID from the embed URL
+        author_id = int(embed.author.url.split('/')[-1])
+
+        # Check if the user is an administrator or the author of the request
+        if not await checks.admin_or_permissions().predicate(ctx) and user.id != author_id:
+            return
+
+        # Get the approve and deny emojis from the config
+        approve_emoji = await self.config.approve_emoji()
+        deny_emoji = await self.config.deny_emoji()
+
+        # Check if the reaction emoji matches either of them
+        if emoji.name == approve_emoji or emoji.name == deny_emoji:
+            # Get the request information from the config using the message ID as a key
+            request = await self.config.custom("REQUESTS", message_id).all()
+
+            # Check if the request is valid and has a name, file, and type
+            if not request or not request["name"] or not request["file"] or not request["type"]:
+                return
+
+            # Create a discord.File object from the request file bytes
+            file = discord.File(io.BytesIO(request["file"]), filename=request["name"])
+
+            # Check if the reaction emoji is the approve emoji
+            if emoji.name == approve_emoji:
+                # Try to create the emoji or sticker in the guild using the request name and file
+                try:
+                    if request["type"] == "emoji":
+                        result = await guild.create_custom_emoji(name=request["name"], image=file)
+                    elif request["type"] == "sticker":
+                        result = await guild.create_sticker(name=request["name"], file=file)
+                    else:
+                        return
+
+                    # Send a confirmation message that mentions the requesting user and the approving administrator, along with the created emoji or sticker
+                    await channel.send(f"{user.mention} has approved {self.bot.get_user(author_id).mention}'s request for {result}.")
+                except Exception as e:
+                    # Send an error message if something goes wrong
+                    await channel.send(f"Something went wrong while creating {request['type']}: {e}")
+            
+            # Check if the reaction emoji is the deny emoji
+            elif emoji.name == deny_emoji:
+                # Send a denial message that mentions the requesting user and the denying administrator
+                await channel.send(f"{user.mention} has denied {self.bot.get_user(author_id).mention}'s request for {request['name']}.")
+
+            # Delete the request message and clear the config entry for it
+            await message.delete()
+            await self.config.custom("REQUESTS", message_id).clear()
+
+    @commands.command ()
+    async def requestemoji (self, ctx, name: str, *, attachment: discord.Attachment = None):
+        """Request an emoji with a given name and an optional attachment."""
+        # Check if the user has provided a valid name
+        if not name.isalnum():
+            await ctx.send("Please provide a valid name for your emoji. It should only contain letters and numbers.")
+            return
+
+        # Check if the user has provided a valid attachment
+        if not attachment or not attachment.filename.lower().endswith((".png", ".jpg", ".jpeg", ".gif")):
+            await ctx.send("Please provide a valid image file for your emoji. It should be in PNG, JPEG, or GIF format.")
+            return
+
+        # Check if the image size and file size meet the requirements for emojis
+        if attachment.width < 32 or attachment.width > 128 or attachment.height < 32 or attachment.height > 128 or attachment.size > 256000:
+            # If not, use PIL to resize the image accordingly, preserving the aspect ratio and quality as much as possible
+            image = Image.open(io.BytesIO(await attachment.read()))
+            image.thumbnail((128, 128), Image.ANTIALIAS)
+            output = io.BytesIO()
+            image.save(output, format=image.format)
+            output.seek(0)
+            # Create a new discord.File object from the resized image bytes
+            file = discord.File(output, filename=attachment.filename)
+        else:
+            # If yes, use the original attachment as the file
+            file = attachment
+
+        # Create an embed message that shows the preview of the requested emoji, along with the name and author
+        embed = discord.Embed(title=f"Request for {name}", color=discord.Color.blue())
+        embed.set_image(url="attachment://" + file.filename)
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url, url=f"https://discord.com/users/{ctx.author.id}")
+
+        # Add the approve and deny emojis as reactions to the embed message
+        approve_emoji = await self.config.approve_emoji()
+        deny_emoji = await self.config.deny_emoji()
+        message = await ctx.send(file=file, embed=embed)
+        await message.add_reaction(approve_emoji)
+        await message.add_reaction(deny_emoji)
+
+        # Store some information about the request in your Config object, such as the message ID, author ID, name, file bytes, and type (emoji or sticker)
+        await self.config.custom("REQUESTS", message.id).set({
+            "author_id": ctx.author.id,
+            "name": name,
+            "file": output.getvalue() if output else await attachment.read(),
+            "type": "emoji"
+        })
+
+    @commands.command ()
+    async def requeststicker (self, ctx, name: str, *, attachment: discord.Attachment = None):
+        """Request a sticker with a given name and an optional attachment."""
+        # Check if the user has provided a valid name
+        if not name.isalnum():
+            await ctx.send("Please provide a valid name for your sticker. It should only contain letters and numbers.")
+            return
+
+        # Check if the user has provided a valid attachment
+        if not attachment or not attachment.filename.lower().endswith((".png", ".jpg", ".jpeg")):
+            await ctx.send("Please provide a valid image file for your sticker. It should be in PNG or JPEG format.")
+            return
+
+        # Check if the image size and file size meet the requirements for stickers
+        if attachment.width != 320 or attachment.height != 320 or attachment.size > 500000:
+            # If not, use PIL to resize the image accordingly, preserving the aspect ratio and quality as much as possible
+            image = Image.open(io.BytesIO(await attachment.read()))
+            image = image.resize((320, 320), Image.ANTIALIAS)
+            output = io.BytesIO()
+            image.save(output, format=image.format)
+            output.seek(0)
+            # Create a new discord.File object from the resized image bytes
+            file = discord.File(output, filename=attachment.filename)
+        else:
+            # If yes, use the original attachment as the file
+            file = attachment
+
+        # Create an embed message that shows the preview of the requested sticker, along with the name and author
+        embed = discord.Embed(title=f"Request for {name}", color=discord.Color.blue())
+        embed.set_image(url="attachment://" + file.filename)
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url, url=f"https://discord.com/users/{ctx.author.id}")
+
+        # Add the approve and deny emojis as reactions to the embed message
+        approve_emoji = await self.config.approve_emoji()
+        deny_emoji = await self.config.deny_emoji()
+        message = await ctx.send(file=file, embed=embed)
+        await message.add_reaction(approve_emoji)
+        await message.add_reaction(deny_emoji)
+
+        # Store some information about the request in your Config object, such as the message ID, author ID, name, file bytes, and type (emoji or sticker)
+        await self.config.custom("REQUESTS", message.id).set({
+            "author_id": ctx.author.id,
+            "name": name,
+            "file": output.getvalue() if output else await attachment.read(),
+            "type": "sticker"
+        })
