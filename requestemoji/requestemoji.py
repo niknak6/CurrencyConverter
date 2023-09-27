@@ -1,6 +1,5 @@
 # Import the necessary modules
 from redbot.core import commands, checks
-from discord.ext import tasks
 import discord, asyncio
 
 # Define the cog class
@@ -36,11 +35,13 @@ class RequestEmoji(commands.Cog):
     async def delete_request(self, request_msg):
         """Delete a request after 30 minutes"""
         await asyncio.sleep(1800) # Wait for 30 minutes
-        # Check if the request is still in the dictionary
-        if (request_msg.id, request_msg.channel.id) in self.requests:
-            # Delete the request message and remove it from the dictionary
+        # Check if the request is still in the dictionary and delete it
+        self.requests.pop((request_msg.id, request_msg.channel.id), None)
+        # Delete the request message if it still exists
+        try:
             await request_msg.delete()
-            del self.requests[(request_msg.id, request_msg.channel.id)]
+        except discord.NotFound:
+            pass
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
