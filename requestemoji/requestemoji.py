@@ -14,7 +14,7 @@ class RequestEmoji(commands.Cog):
 
   @commands.command(name="requestemoji", aliases=["reqemoji"], help="Request a custom emoji to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
   @commands.guild_only()
-  @commands.cooldown(1, 60, commands.BucketType.user)
+  @commands.cooldown(1, 1800, commands.BucketType.user) # Change the cooldown to 30 minutes
   async def request_emoji(self, ctx, name: str):
     # Check if the name argument is valid for an emoji name
     if not (2 <= len(name) <= 32 and name.isalnum() or "_"):
@@ -45,7 +45,7 @@ class RequestEmoji(commands.Cog):
     # Create an embed message that contains the name and image of the requested emoji and send it to the same channel
     embed = discord.Embed(title=f"Emoji request: {name}", description=f"{ctx.author.mention} has requested a custom emoji with this name and image. An Officer or Guild Master can approve or deny this request by reacting with a checkmark or x emoji.", color=discord.Color.blue())
     embed.set_image(url="attachment://emoji.png") # Set the embed image to the attachment with filename emoji.png
-    embed.set_footer(text="This request will expire in 60 seconds.") # Set the embed footer to show the expiration time
+    embed.set_footer(text="This request will expire in 30 minutes.") # Set the embed footer to show the new expiration time
     file = discord.File(io.BytesIO(image_data), filename="emoji.png") # Create a discord File object from the image data with filename emoji.png
     message = await ctx.send(embed=embed, file=file) # Send the embed message with the file attachment
     
@@ -57,10 +57,10 @@ class RequestEmoji(commands.Cog):
     def check(reaction, user): # Define a check function that returns True if the reaction is valid and False otherwise
       return (reaction.message.id == message.id and user != self.bot.user and user.top_role.name in ["Officer", "Guild Master"] and reaction.emoji in ["\u2705", "\u274c"]) # Use user.top_role.name to check if the user has a mod or permissions role
     
-    try: # Try to wait for a reaction that passes the check function within 60 seconds
-      reaction, user = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
+    try: # Try to wait for a reaction that passes the check function within 30 minutes
+      reaction, user = await self.bot.wait_for("reaction_add", timeout=1800.0, check=check) # Change the timeout to 30 minutes
     except asyncio.TimeoutError: # If no reaction is received within the time limit, send a message to inform that the request expired
-      await ctx.send(f"The emoji request for {name} has expired.")
+      await ctx.send(f"The emoji request for {name} has expired after 30 minutes.") # Change the message to include the new expiration time
       return
     
     # If the reaction is a checkmark, try to create the emoji and send a message to confirm
