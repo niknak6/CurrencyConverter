@@ -31,19 +31,8 @@ class RequestEmoji(commands.Cog):
       await ctx.send("There was an error while reading the image. Please try again with a valid PNG or JPG file.")
       return
     
-    try: # Try to open the image data with PIL and check its size and format
-      image = Image.open(io.BytesIO(image_data))
-      width, height = image.size
-      format = image.format
-      if width > 128 or height > 128 or format not in ["PNG", "JPEG"]: # If the image is too large or not in PNG or JPG format, try to resize or convert it
-        image = image.resize((128, 128), Image.LANCZOS) # Resize the image to 128x128 pixels using LANCZOS algorithm
-        image = image.convert("RGBA") # Convert the image to RGBA mode
-        format = "PNG" # Set the format to PNG
-        output = io.BytesIO() # Create a BytesIO object to store the output
-        image.save(output, format=format) # Save the image to the output
-        output.seek(0) # Seek to the beginning of the output
-        image_data = output.read() # Read the output as bytes
-        output.close() # Close the output
+    try: # Try to resize the image using thumbnail algorithm with 128x128 pixels as desired size
+      image_data = resize_image(image_data, (128, 128))
       if len(image_data) > 256 * 1024: # If the image is still too large, raise an error and send a message
         raise errors.UserFeedbackCheckFailure("The image is too large. It must be smaller than 256 KB.")
         await ctx.send("The image is too large. It must be smaller than 256 KB.")
@@ -87,3 +76,64 @@ class RequestEmoji(commands.Cog):
     # If the reaction is an x, send a message to inform that the request was denied
     if reaction.emoji == "\u274c":
       await ctx.send(f"The emoji request for {name} was denied by {user.mention}.")
+
+# Define a function that resizes the image using thumbnail algorithm and preserves the aspect ratio
+def resize_image(image_data, size):
+    # Open the image data with PIL
+    image = Image.open(io.BytesIO(image_data))
+    # Resize the image using thumbnail algorithm
+    image.thumbnail(size, Image.LANCZOS)
+    # Convert the image to RGBA mode
+    image = image.convert("RGBA")
+    # Save the image to a BytesIO object
+    output = io.BytesIO()
+    image.save(output, format="PNG")
+    # Seek to the beginning of the output
+    output.seek(0)
+    # Read the output as bytes
+    resized_image_data = output.read()
+    # Close the output
+    output.close()
+    # Return the resized image data
+    return resized_image_data
+
+# Define a function that chooses a good pivot using median-of-three technique
+def median_of_three(numbers):
+    # Get the first, middle, and last element of the list
+    first = numbers[0]
+    middle = numbers[len(numbers) // 2]
+    last = numbers[-1]
+    # Sort these three elements and choose the middle one as pivot
+    if first > last:
+        first, last = last, first
+    if first > middle:
+        first, middle = middle, first
+    if middle > last:
+        middle, last = last, middle
+    pivot = middle
+    # Swap pivot with first element of list
+    numbers[0], numbers[numbers.index(pivot)] = numbers[numbers.index(pivot)], numbers[0]
+
+# Define a function that sorts a list using quick sort algorithm
+def quick_sort(numbers):
+    # If the list has zero or one element, it is already sorted
+    if len(numbers) <= 1:
+        return numbers
+    # Choose a good pivot using median-of-three technique
+    median_of_three(numbers)
+    # Choose any element as pivot (now it's already chosen by median_of_three)
+    pivot = numbers[0]
+    # Partition the list into two sublists: one with smaller or equal elements and one with larger elements
+    smaller = []
+    larger = []
+    for num in numbers[1:]:
+        if num <= pivot:
+            smaller.append(num)
+        else:
+            larger.append(num)
+    # Recursively sort each sublist using quick sort
+    smaller = quick_sort(smaller)
+    larger = quick_sort(larger)
+    # Combine the sorted sublists and return them as the sorted list
+    return smaller + [pivot] + larger
+
