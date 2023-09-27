@@ -4,6 +4,7 @@ import io
 import requests
 import asyncio
 
+# Inherit from commands.Cog base class
 class RequestEmoji(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -82,5 +83,6 @@ class RequestEmoji(commands.Cog):
         # Resize the image
         return image.resize((new_width, new_height), Image.ANTIALIAS)
 
+# Use setup function to register the cog with the bot
 def setup(bot):
     bot.add_cog(RequestEmoji(bot))
