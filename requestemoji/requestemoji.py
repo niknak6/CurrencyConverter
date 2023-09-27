@@ -67,7 +67,8 @@ class RequestEmoji(commands.Cog):
         # Handle the approval or denial accordingly
         if str(reaction.emoji) == "\u2705": # check mark
             try:
-                sticker = await ctx.guild.create_sticker(name=name, image=image_bytes.read(), reason=f"Approved by {user}")
+                sticker_file = discord.File(image_bytes, filename="sticker.png")
+                sticker = await ctx.guild.create_sticker(name=name, file=sticker_file, reason=f"Approved by {user}")
                 await ctx.send(f"{ctx.author.mention}, your sticker request has been approved by {user.mention}. You can use it with {sticker.name}.")
             except discord.HTTPException as e:
                 await ctx.send(f"{ctx.author.mention}, your sticker request has failed due to an error: {e}")
@@ -135,7 +136,8 @@ class RequestEmoji(commands.Cog):
         # Handle the approval or denial accordingly
         if str(reaction.emoji) == "\u2705": # check mark
             try:
-                emoji = await ctx.guild.create_custom_emoji(name=name, image=image_bytes.read(), reason=f"Approved by {user}")
+                emoji_file = discord.File(image_bytes, filename="emoji.png")
+                emoji = await ctx.guild.create_custom_emoji(name=name, file=emoji_file, reason=f"Approved by {user}")
                 await ctx.send(f"{ctx.author.mention}, your emoji request has been approved by {user.mention}. You can use it with {emoji}.")
             except discord.HTTPException as e:
                 await ctx.send(f"{ctx.author.mention}, your emoji request has failed due to an error: {e}")
