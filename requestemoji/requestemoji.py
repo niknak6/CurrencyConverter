@@ -1,109 +1,145 @@
-from discord.ext import commands
+import discord
+from redbot.core import commands, checks, Config
 from PIL import Image
+import cv2
 import io
-import requests
 import asyncio
 
-# Inherit from commands.Cog base class
 class RequestEmoji(commands.Cog):
+    """A cog that allows users to request custom emojis and stickers."""
+
     def __init__(self, bot):
         self.bot = bot
 
-    # Use commands.group decorator to create a command group
     @commands.group()
     async def request(self, ctx):
-        # Check if a subcommand was invoked
+        """Request a custom emoji or sticker."""
         if ctx.invoked_subcommand is None:
-            await ctx.send('Invalid request type passed...')
+            await ctx.send_help()
 
-    # Use commands.command decorator to create a subcommand
     @request.command()
-    async def sticker(self, ctx, name: str):
-        # Call the handle_request method with the appropriate parameters
-        await self.handle_request(ctx, name, 'sticker', 320, 500)
-
-    # Use commands.command decorator to create another subcommand
-    @request.command()
-    async def emoji(self, ctx, name: str):
-        # Call the handle_request method with the appropriate parameters
-        await self.handle_request(ctx, name, 'emoji', 128, 256)
-
-    # Define a helper method to handle the request logic
-    async def handle_request(self, ctx, name: str, request_type: str, size: int, max_kb: int):
-        # Check if the message has an attachment
-        if not ctx.message.attachments:
-            await ctx.send('Please attach an image.')
+    async def sticker(self, ctx, name: str, image: discord.Attachment):
+        """Request a custom sticker."""
+        # Check if the name is valid and not already taken
+        if not name.isalnum():
+            await ctx.send("The name must be alphanumeric.")
+            return
+        if any(sticker.name == name for sticker in ctx.guild.stickers):
+            await ctx.send("There is already a sticker with that name in this guild.")
             return
 
-        # Get the image URL from the attachment
-        image_url = ctx.message.attachments[0].url
-        # Make a GET request to the image URL and get the response content as bytes
-        response = requests.get(image_url)
-        # Open the image using PIL.Image module
-        image = Image.open(io.BytesIO(response.content))
-
-        # Check the file size in KB
-        file_size_kb = len(response.content) / 1024
-        # Compare it with the max KB allowed for the request type
-        if file_size_kb > max_kb:
-            await ctx.send(f'The file size is too large. It must be under {max_kb}KB.')
+        # Check if the image is valid and has a supported format
+        if image.size > 500 * 1024:
+            await ctx.send("The image is too large. The maximum file size is 500 KB.")
+            return
+        if image.filename.split(".")[-1].lower() not in ["jpg", "jpeg", "png"]:
+            await ctx.send("The image format is not supported. The supported formats are JPEG and PNG.")
             return
 
-        # Resize the image using the helper method
-        image = self.resize_image(image, size)
+        # Download the image and resize it to 320x320
+        image_bytes = io.BytesIO()
+        await image.save(image_bytes)
+        image_bytes.seek(0)
+        pil_image = Image.open(image_bytes)
+        pil_image = pil_image.resize((320, 320), Image.LANCZOS)
+        image_bytes = io.BytesIO()
+        pil_image.save(image_bytes, format=image.filename.split(".")[-1].upper())
+        image_bytes.seek(0)
 
-        # Save the resized image to a buffer object in PNG format
-        output_buffer = io.BytesIO()
-        image.save(output_buffer, format='PNG')
-        # Seek to the beginning of the buffer object
-        output_buffer.seek(0)
+        # Create a request message and send it to the same channel as the command
+        embed = discord.Embed(title=f"Sticker Request: {name}", description=f"Requested by {ctx.author.mention}", color=discord.Color.blue())
+        embed.set_image(url="attachment://sticker.png")
+        request_message = await ctx.send(embed=embed, file=discord.File(image_bytes, filename="sticker.png"))
 
-        # Send the resized image as a file attachment with the given name
-        await ctx.send(file=discord.File(fp=output_buffer, filename=f'{name}.png'))
+        # Add reactions for approval and denial
+        await request_message.add_reaction("\u2705") # check mark
+        await request_message.add_reaction("\u274c") # cross mark
 
-        # Ask for approval from an administrator using reactions
-        msg = await ctx.send('React to approve or deny this request.')
-        await msg.add_reaction('✅')
-        await msg.add_reaction('❌')
-
-        # Define a check function to filter reactions by administrators and message ID
+        # Wait for an administrator to react to the message
         def check(reaction, user):
-            return user.guild_permissions.administrator and reaction.message.id == msg.id
+            return user.guild_permissions.administrator and reaction.message.id == request_message.id and str(reaction.emoji) in ["\u2705", "\u274c"]
 
         try:
-            # Wait for a reaction that passes the check function within 30 minutes (1800 seconds)
-            reaction, user = await self.bot.wait_for('reaction_add', timeout=1800.0, check=check)
-            # Check if the reaction emoji is a check mark
-            if str(reaction.emoji) == '✅':
-                # Add the emoji or sticker to the guild using the buffer object and the name provided by the user
-                if request_type == 'emoji':
-                    await ctx.guild.create_custom_emoji(name=name, image=output_buffer.getvalue())
-                else:
-                    await ctx.guild.create_custom_sticker(name=name, image=output_buffer.getvalue())
-                # Notify the user that their request has been approved and added by an administrator
-                await ctx.send(f'Your request has been approved and added by {user.mention}!')
-            else:
-                # Notify the user that their request has been denied by an administrator
-                await ctx.send(f'Your request has been denied by {user.mention}.')
+            reaction, user = await self.bot.wait_for("reaction_add", timeout=1800.0, check=check)
         except asyncio.TimeoutError:
-            # Notify the user that their request has timed out after 30 minutes of no reaction
-            await ctx.send('Your request has timed out.')
+            await ctx.send(f"{ctx.author.mention}, your sticker request has timed out. Please try again later.")
+            return
 
-    # Define another helper method to resize images while preserving aspect ratio and quality
-    def resize_image(self, image: Image.Image, size: int) -> Image.Image:
-        # Calculate the aspect ratio of width and height relative to the desired size
-        width_ratio = size / image.width
-        height_ratio = size / image.height
-        # Choose the smaller ratio to avoid stretching or cropping the image
-        ratio = min(width_ratio, height_ratio)
+        # Handle the approval or denial accordingly
+        if str(reaction.emoji) == "\u2705": # check mark
+            try:
+                sticker = await ctx.guild.create_sticker(name=name, image=image_bytes.read(), reason=f"Approved by {user}")
+                await ctx.send(f"{ctx.author.mention}, your sticker request has been approved by {user.mention}. You can use it with {sticker.name}.")
+            except discord.HTTPException as e:
+                await ctx.send(f"{ctx.author.mention}, your sticker request has failed due to an error: {e}")
+                return
+        elif str(reaction.emoji) == "\u274c": # cross mark
+            await ctx.send(f"{ctx.author.mention}, your sticker request has been denied by {user.mention}.")
 
-        # Calculate the new width and height based on the ratio
-        new_width = int(image.width * ratio)
-        new_height = int(image.height * ratio)
+    @request.command()
+    async def emoji(self, ctx, name: str, image: discord.Attachment):
+        """Request a custom emoji."""
+        # Check if the name is valid and not already taken
+        if not name.isalnum():
+            await ctx.send("The name must be alphanumeric.")
+            return
+        if any(emoji.name == name for emoji in ctx.guild.emojis):
+            await ctx.send("There is already an emoji with that name in this guild.")
+            return
 
-        # Resize the image using the ANTIALIAS filter to reduce distortion
-        return image.resize((new_width, new_height), Image.ANTIALIAS)
+        # Check if the image is valid and has a supported format
+        if image.size > 256 * 1024:
+            await ctx.send("The image is too large. The maximum file size is 256 KB.")
+            return
+        if image.filename.split(".")[-1].lower() not in ["jpg", "jpeg", "png"]:
+            await ctx.send("The image format is not supported. The supported formats are JPEG and PNG.")
+            return
 
-# Use setup function to register the cog with the bot
-def setup(bot):
-    bot.add_cog(RequestEmoji(bot))
+        # Download the image and resize it to fit the Discord limitations
+        image_bytes = io.BytesIO()
+        await image.save(image_bytes)
+        image_bytes.seek(0)
+        pil_image = Image.open(image_bytes)
+        width, height = pil_image.size
+        if width < 32 or height < 32:
+            # If the image is too small, enlarge it to 32x32
+            pil_image = pil_image.resize((32, 32), Image.LANCZOS)
+        elif width > 128 or height > 128:
+            # If the image is too large, shrink it to 128x128 while preserving the aspect ratio
+            ratio = min(128 / width, 128 / height)
+            new_width = int(width * ratio)
+            new_height = int(height * ratio)
+            pil_image = pil_image.resize((new_width, new_height), Image.LANCZOS)
+        image_bytes = io.BytesIO()
+        pil_image.save(image_bytes, format=image.filename.split(".")[-1].upper())
+        image_bytes.seek(0)
+
+        # Create a request message and send it to the same channel as the command
+        embed = discord.Embed(title=f"Emoji Request: {name}", description=f"Requested by {ctx.author.mention}", color=discord.Color.blue())
+        embed.set_image(url="attachment://emoji.png")
+        request_message = await ctx.send(embed=embed, file=discord.File(image_bytes, filename="emoji.png"))
+
+        # Add reactions for approval and denial
+        await request_message.add_reaction("\u2705") # check mark
+        await request_message.add_reaction("\u274c") # cross mark
+
+        # Wait for an administrator to react to the message
+        def check(reaction, user):
+            return user.guild_permissions.administrator and reaction.message.id == request_message.id and str(reaction.emoji) in ["\u2705", "\u274c"]
+
+        try:
+            reaction, user = await self.bot.wait_for("reaction_add", timeout=1800.0, check=check)
+        except asyncio.TimeoutError:
+            await ctx.send(f"{ctx.author.mention}, your emoji request has timed out. Please try again later.")
+            return
+
+        # Handle the approval or denial accordingly
+        if str(reaction.emoji) == "\u2705": # check mark
+            try:
+                emoji = await ctx.guild.create_custom_emoji(name=name, image=image_bytes.read(), reason=f"Approved by {user}")
+                await ctx.send(f"{ctx.author.mention}, your emoji request has been approved by {user.mention}. You can use it with {emoji}.")
+            except discord.HTTPException as e:
+                await ctx.send(f"{ctx.author.mention}, your emoji request has failed due to an error: {e}")
+                return
+        elif str(reaction.emoji) == "\u274c": # cross mark
+            await ctx.send(f"{ctx.author.mention}, your emoji request has been denied by {user.mention}.")
