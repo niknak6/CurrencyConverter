@@ -4,6 +4,7 @@ from redbot.core.utils.chat_formatting import pagify
 from discord.ext.commands.converter import EmojiConverter
 from PIL import Image
 import io
+import asyncio # Import asyncio for handling timeout error
 
 class RequestEmoji(commands.Cog):
   """A cog that allows users to request custom emojis."""
@@ -59,13 +60,13 @@ class RequestEmoji(commands.Cog):
     file = discord.File(io.BytesIO(image_data), filename="emoji.png") # Create a discord File object from the image data with filename emoji.png
     message = await ctx.send(embed=embed, file=file) # Send the embed message with the file attachment
     
-    # Add a checkmark and x emoji as reactions to the embed message
+    # Add a checkmark and x emoji as reactions to the embed message using message.add_reaction()
     await message.add_reaction("\u2705") # Checkmark emoji
     await message.add_reaction("\u274c") # X emoji
     
     # Wait for a reaction from an Officer or Guild Master
     def check(reaction, user): # Define a check function that returns True if the reaction is valid and False otherwise
-      return (reaction.message.id == message.id and user != self.bot.user and checks.is_mod_or_superior(self.bot, user) and reaction.emoji in ["\u2705", "\u274c"])
+      return (reaction.message.id == message.id and user != self.bot.user and checks.mod_or_permissions(self.bot, user) and reaction.emoji in ["\u2705", "\u274c"]) # Use checks.mod_or_permissions() instead of checks.is_mod_or_superior()
     
     try: # Try to wait for a reaction that passes the check function within 60 seconds
       reaction, user = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
