@@ -129,7 +129,7 @@ class RequestEmoji (commands.Cog):
         if attachment.width < 32 or attachment.width > 128 or attachment.height < 32 or attachment.height > 128 or attachment.size > 256000:
             # If not, use PIL to resize the image accordingly, preserving the aspect ratio and quality as much as possible
             image = Image.open(io.BytesIO(await attachment.read()))
-            image.thumbnail((128, 128), Image.ANTIALIAS)
+            image.thumbnail((128, 128), Image.LANCZOS)
             output = io.BytesIO()
             image.save(output, format=image.format)
             output.seek(0)
@@ -176,7 +176,7 @@ class RequestEmoji (commands.Cog):
         if attachment.width != 320 or attachment.height != 320 or attachment.size > 500000:
             # If not, use PIL to resize the image accordingly, preserving the aspect ratio and quality as much as possible
             image = Image.open(io.BytesIO(await attachment.read()))
-            image = image.resize((320, 320), Image.ANTIALIAS)
+            image = image.resize((320, 320), Image.LANCZOS)
             output = io.BytesIO()
             image.save(output, format=image.format)
             output.seek(0)
