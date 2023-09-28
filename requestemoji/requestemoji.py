@@ -12,9 +12,9 @@ class RequestEmoji(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
 
-  @commands.command(name="requestemoji", aliases=["reqemoji"], help="Request a custom emoji to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
+  @commands.command(name="requestemoji", aliases=["reqemoji"], help="Request a custom emoji to be added to the server.", usage="<name> [attachment]") # Remove the cooldown_after_parsing parameter
   @commands.guild_only()
-  @commands.cooldown(0, 1800, commands.BucketType.user) # Change the cooldown to zero
+  # Remove the @commands.cooldown decorator
   async def request_emoji(self, ctx, name: str):
     # Check if the name argument is valid for an emoji name
     if not (2 <= len(name) <= 32 and name.isalnum() or "_"):
@@ -27,18 +27,18 @@ class RequestEmoji(commands.Cog):
     try: # Try to get the image data from the attachment
       image_data = await attachment.read()
     except Exception as e: # If something goes wrong, raise an error and send a message
-      raise errors.UserFeedbackCheckFailure(f"Something went wrong while reading the image: {e}")
+      # Remove errors.UserFeedbackCheckFailure exception handling
       await ctx.send("There was an error while reading the image. Please try again with a valid PNG or JPG file.")
       return
     
     try: # Try to resize the image using thumbnail algorithm with 128x128 pixels as desired size
       image_data = resize_image(image_data, (128, 128))
       if len(image_data) > 256 * 1024: # If the image is still too large, raise an error and send a message
-        raise errors.UserFeedbackCheckFailure("The image is too large. It must be smaller than 256 KB.")
+        # Remove errors.UserFeedbackCheckFailure exception handling
         await ctx.send("The image is too large. It must be smaller than 256 KB.")
         return
     except Exception as e: # If something goes wrong, raise an error and send a message
-      raise errors.UserFeedbackCheckFailure(f"Something went wrong while processing the image: {e}")
+      # Remove errors.UserFeedbackCheckFailure exception handling
       await ctx.send("There was an error while processing the image. Please try again with a valid PNG or JPG file.")
       return
     
