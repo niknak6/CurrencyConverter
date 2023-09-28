@@ -32,11 +32,12 @@ class RequestEmoji(commands.Cog):
       await ctx.send("There was an error while reading the image. Please try again with a valid PNG or JPG file.")
       return
     
-    try: # Try to resize the image file using resize_image_file function
-      image_data = resize_image_file(image_data, (128, 128))
-    except ValueError as e: # If a ValueError occurs, it means that the image file is not supported or too large
-      await ctx.send(f"There was an error while resizing the image file: {e}")
-      return
+    if attachment.size > 256000: # If the file size is larger than 256 KB, resize it
+      try: # Try to resize the image file using resize_image_file function
+        image_data = resize_image_file(image_data, (128, 128))
+      except ValueError as e: # If a ValueError occurs, it means that the image file is not supported or too large
+        await ctx.send(f"There was an error while resizing the image file: {e}")
+        return
     
     # Create an embed message that contains the name and image of the requested emoji and send it to the same channel
     embed = discord.Embed(title=f"Emoji request: {name}", description=f"{ctx.author.mention} has requested a custom emoji with this name and image. An Officer or Guild Master can approve or deny this request by reacting with a checkmark or x emoji.", color=discord.Color.red())
@@ -97,27 +98,22 @@ def resize_image_file(image_data, size):
 
 # Define a function that resizes a gif file using ImageMagick and preserves the animation
 def resize_gif(image_data, size):
-    # Open the image data with PIL
-    image = Image.open(io.BytesIO(image_data))
-    # Save the image to a temporary file as a gif file
-    temp_file = "temp.gif"
-    image.save(temp_file, format="GIF")
-    # Use ImageMagick to resize the gif file and save it to another temporary file
-    resized_file = "resized.gif"
-    params = ['convert', '-resize', f'{size[0]}x{size[1]}', temp_file, resized_file]
-    subprocess.check_call(params)
-    # Open the resized file with PIL and read the image data
-    resized_image = Image.open(resized_file)
-    output = io.BytesIO()
-    resized_image.save(output, format="GIF")
-    output.seek(0)
-    resized_image_data = output.read()
-    # Close the output and delete the temporary files
-    output.close()
-    os.remove(temp_file)
-    os.remove(resized_file)
-    # Return the resized image data
-    return resized_image_data
+   # Save the image data to a temporary file as a gif file
+   temp_file = "temp.gif"
+   with open(temp_file, "wb") as f:
+       f.write(image_data)
+   # Use ImageMagick to resize the gif file and save it to another temporary file
+   resized_file = "resized.gif"
+   params = ['convert', '-resize', f'{size[0]}x{size[1]}', temp_file, resized_file]
+   subprocess.check_call(params)
+   # Read the resized file as bytes
+   with open(resized_file, "rb") as f:
+       resized_image_data = f.read()
+   # Delete the temporary files
+   os.remove(temp_file)
+   os.remove(resized_file)
+   # Return the resized image data
+   return resized_image_data
 
 # Define a function that resizes an image using thumbnail algorithm and preserves the aspect ratio
 def resize_image(image_data, size):
