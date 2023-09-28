@@ -37,7 +37,7 @@ class RequestEmoji(commands.Cog):
       return
     
     # Create an embed message that contains the name and image of the requested emoji and send it to the same channel
-    embed = discord.Embed(title=f"Emoji request: {name}", description=f"{ctx.author.mention} has requested a custom emoji with this name and image. An Officer or Guild Master can approve or deny this request by reacting with a checkmark or x emoji.", color=discord.Color.blue())
+    embed = discord.Embed(title=f"Emoji request: {name}", description=f"{ctx.author.mention} has requested a custom emoji with this name and image. An Officer or Guild Master can approve or deny this request by reacting with a checkmark or x emoji.", color=discord.Color.red())
     embed.set_image(url="attachment://emoji.gif") # Set the embed image to the attachment with filename emoji.gif
     embed.set_footer(text="This request will expire in 30 minutes.") # Set the embed footer to show the new expiration time
     file = discord.File(io.BytesIO(image_data), filename="emoji.gif") # Create a discord File object from the image data with filename emoji.gif
