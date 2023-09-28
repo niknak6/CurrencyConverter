@@ -5,6 +5,7 @@ from discord.ext.commands.converter import EmojiConverter
 from PIL import Image, ImageSequence # Import the PIL modules for image processing
 import io
 import asyncio # Import asyncio for handling timeout error
+import imghdr # Import the imghdr module for image format detection
 
 class RequestEmoji(commands.Cog):
   """A cog that allows users to request custom emojis."""
@@ -29,13 +30,10 @@ class RequestEmoji(commands.Cog):
       await ctx.send("There was an error while reading the image. Please try again with a valid PNG or JPG file.")
       return
     
-    try: # Try to resize the gif file using resize_gif function
-      image_data = resize_gif(image_data, (128, 128))
-    except OSError as e: # If an OSError occurs, it means that the gif file is not supported by Pillow
-      await ctx.send("The gif file is not supported. Please try again with a valid gif file.")
-      return
-    except ValueError as e: # If a ValueError occurs, it means that the gif file is too large for Pillow
-      await ctx.send("The gif file is too large. Please try again with a smaller gif file.")
+    try: # Try to resize the image file using resize_image_file function
+      image_data = resize_image_file(image_data, (128, 128))
+    except ValueError as e: # If a ValueError occurs, it means that the image file is not supported or too large
+      await ctx.send(f"There was an error while resizing the image file: {e}")
       return
     
     # Create an embed message that contains the name and image of the requested emoji and send it to the same channel
@@ -80,6 +78,21 @@ class RequestEmoji(commands.Cog):
     if reaction.emoji == "\u274c":
       await ctx.send(f"The emoji request for {name} was denied by {user.mention} for {ctx.author.mention}.") # Change the message to include the mention of the requester and the approver
 
+# Define a function that resizes an image file using the appropriate function based on the format
+def resize_image_file(image_data, size):
+    # Detect the image format using imghdr
+    image_format = imghdr.what(None, image_data)
+    # If the image format is gif, use the resize_gif function
+    if image_format == "gif":
+        return resize_gif(image_data, size)
+    # If the image format is png or jpeg, use the resize_image function
+    elif image_format in ["png", "jpeg"]:
+        return resize_image(image_data, size)
+    # If the image format is something else or unknown, raise an error and return None
+    else:
+        raise ValueError(f"Unsupported image format: {image_format}")
+        return None
+
 # Define a function that resizes a gif file using thumbnail algorithm and preserves the animation
 def resize_gif(image_data, size):
     # Open the image data with PIL
@@ -97,4 +110,32 @@ def resize_gif(image_data, size):
     # Save the frames to a BytesIO object as a new gif file
     output = io.BytesIO()
     frames[0].save(output, format="GIF", save_all=True, append_images=frames[1:], loop=0)
-    #
+    # Seek to the beginning of the output
+    output.seek(0)
+    # Read the output as bytes
+    resized_image_data = output.read()
+    # Close the output
+    output.close()
+    # Return the resized image data
+    return resized_image_data
+
+# Define a function that resizes an image using thumbnail algorithm and preserves the aspect ratio
+def resize_image(image_data, size):
+    # Open the image data with PIL
+    image = Image.open(io.BytesIO(image_data))
+    # Resize the image using thumbnail algorithm
+    image.thumbnail(size, Image.LANCZOS)
+    # Convert the image to RGBA mode
+    image = image.convert("RGBA")
+    # Save the image to a BytesIO object as a PNG file
+    output = io.BytesIO()
+    image.save(output, format="PNG")
+    # Seek to the beginning of the output
+    output.seek(0)
+    # Read the output as bytes
+    resized_image_data = output.read()
+    # Close the output
+    output.close()
+    # Return the resized image data
+    return resized_image_data
+
