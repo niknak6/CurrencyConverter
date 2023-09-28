@@ -6,6 +6,8 @@ from PIL import Image, ImageSequence # Import the PIL modules for image processi
 import io
 import asyncio # Import asyncio for handling timeout error
 import imghdr # Import the imghdr module for image format detection
+import subprocess # Import the subprocess module for running commands from the command line
+import os # Import the os module for deleting temporary files
 
 class RequestEmoji(commands.Cog):
   """A cog that allows users to request custom emojis."""
@@ -93,29 +95,27 @@ def resize_image_file(image_data, size):
         raise ValueError(f"Unsupported image format: {image_format}")
         return None
 
-# Define a function that resizes a gif file using thumbnail algorithm and preserves the animation
+# Define a function that resizes a gif file using ImageMagick and preserves the animation
 def resize_gif(image_data, size):
     # Open the image data with PIL
     image = Image.open(io.BytesIO(image_data))
-    # Create a list to store the resized frames
-    frames = []
-    # Loop through each frame of the gif file using ImageSequence
-    for frame in ImageSequence.Iterator(image):
-        # Resize the frame using thumbnail algorithm
-        frame.thumbnail(size, Image.LANCZOS)
-        # Convert the frame to RGBA mode
-        frame = frame.convert("RGBA")
-        # Append the frame to the list
-        frames.append(frame)
-    # Save the frames to a BytesIO object as a new gif file
+    # Save the image to a temporary file as a gif file
+    temp_file = "temp.gif"
+    image.save(temp_file, format="GIF")
+    # Use ImageMagick to resize the gif file and save it to another temporary file
+    resized_file = "resized.gif"
+    params = ['convert', '-resize', f'{size[0]}x{size[1]}', temp_file, resized_file]
+    subprocess.check_call(params)
+    # Open the resized file with PIL and read the image data
+    resized_image = Image.open(resized_file)
     output = io.BytesIO()
-    frames[0].save(output, format="GIF", save_all=True, append_images=frames[1:], loop=0)
-    # Seek to the beginning of the output
+    resized_image.save(output, format="GIF")
     output.seek(0)
-    # Read the output as bytes
     resized_image_data = output.read()
-    # Close the output
+    # Close the output and delete the temporary files
     output.close()
+    os.remove(temp_file)
+    os.remove(resized_file)
     # Return the resized image data
     return resized_image_data
 
@@ -138,4 +138,3 @@ def resize_image(image_data, size):
     output.close()
     # Return the resized image data
     return resized_image_data
-
