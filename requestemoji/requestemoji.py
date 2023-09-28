@@ -2,7 +2,7 @@ import discord
 from redbot.core import commands, checks, errors
 from redbot.core.utils.chat_formatting import pagify
 from discord.ext.commands.converter import EmojiConverter
-from PIL import Image, ImageOps, ImageDraw, ImageFont, ImageFilter # Import the PIL modules for image processing
+from PIL import Image, ImageSequence # Import the PIL modules for image processing
 import io
 import asyncio # Import asyncio for handling timeout error
 
@@ -12,9 +12,8 @@ class RequestEmoji(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
 
-  @commands.command(name="requestemoji", aliases=["reqemoji"], help="Request a custom emoji to be added to the server.", usage="<name> [attachment]") # Remove the cooldown_after_parsing parameter
+  @commands.command(name="requestemoji", aliases=["reqemoji"], help="Request a custom emoji to be added to the server.", usage="<name> [attachment]")
   @commands.guild_only()
-  # Remove the @commands.cooldown decorator
   async def request_emoji(self, ctx, name: str):
     # Check if the name argument is valid for an emoji name
     if not (2 <= len(name) <= 32 and name.isalnum() or "_"):
@@ -27,26 +26,23 @@ class RequestEmoji(commands.Cog):
     try: # Try to get the image data from the attachment
       image_data = await attachment.read()
     except Exception as e: # If something goes wrong, raise an error and send a message
-      # Remove errors.UserFeedbackCheckFailure exception handling
       await ctx.send("There was an error while reading the image. Please try again with a valid PNG or JPG file.")
       return
     
-    try: # Try to resize the image using thumbnail algorithm with 128x128 pixels as desired size
-      image_data = resize_image(image_data, (128, 128))
-      if len(image_data) > 256 * 1024: # If the image is still too large, raise an error and send a message
-        # Remove errors.UserFeedbackCheckFailure exception handling
-        await ctx.send("The image is too large. It must be smaller than 256 KB.")
-        return
-    except Exception as e: # If something goes wrong, raise an error and send a message
-      # Remove errors.UserFeedbackCheckFailure exception handling
-      await ctx.send("There was an error while processing the image. Please try again with a valid PNG or JPG file.")
+    try: # Try to resize the gif file using resize_gif function
+      image_data = resize_gif(image_data, (128, 128))
+    except OSError as e: # If an OSError occurs, it means that the gif file is not supported by Pillow
+      await ctx.send("The gif file is not supported. Please try again with a valid gif file.")
+      return
+    except ValueError as e: # If a ValueError occurs, it means that the gif file is too large for Pillow
+      await ctx.send("The gif file is too large. Please try again with a smaller gif file.")
       return
     
     # Create an embed message that contains the name and image of the requested emoji and send it to the same channel
     embed = discord.Embed(title=f"Emoji request: {name}", description=f"{ctx.author.mention} has requested a custom emoji with this name and image. An Officer or Guild Master can approve or deny this request by reacting with a checkmark or x emoji.", color=discord.Color.blue())
-    embed.set_image(url="attachment://emoji.png") # Set the embed image to the attachment with filename emoji.png
+    embed.set_image(url="attachment://emoji.gif") # Set the embed image to the attachment with filename emoji.gif
     embed.set_footer(text="This request will expire in 30 minutes.") # Set the embed footer to show the new expiration time
-    file = discord.File(io.BytesIO(image_data), filename="emoji.png") # Create a discord File object from the image data with filename emoji.png
+    file = discord.File(io.BytesIO(image_data), filename="emoji.gif") # Create a discord File object from the image data with filename emoji.gif
     message = await ctx.send(embed=embed, file=file) # Send the embed message with the file attachment
     
     # Add a checkmark and x emoji as reactions to the embed message using message.add_reaction()
@@ -84,23 +80,21 @@ class RequestEmoji(commands.Cog):
     if reaction.emoji == "\u274c":
       await ctx.send(f"The emoji request for {name} was denied by {user.mention} for {ctx.author.mention}.") # Change the message to include the mention of the requester and the approver
 
-# Define a function that resizes the image using thumbnail algorithm and preserves the aspect ratio
-def resize_image(image_data, size):
+# Define a function that resizes a gif file using thumbnail algorithm and preserves the animation
+def resize_gif(image_data, size):
     # Open the image data with PIL
     image = Image.open(io.BytesIO(image_data))
-    # Resize the image using thumbnail algorithm
-    image.thumbnail(size, Image.LANCZOS)
-    # Convert the image to RGBA mode
-    image = image.convert("RGBA")
-    # Save the image to a BytesIO object
+    # Create a list to store the resized frames
+    frames = []
+    # Loop through each frame of the gif file using ImageSequence
+    for frame in ImageSequence.Iterator(image):
+        # Resize the frame using thumbnail algorithm
+        frame.thumbnail(size, Image.LANCZOS)
+        # Convert the frame to RGBA mode
+        frame = frame.convert("RGBA")
+        # Append the frame to the list
+        frames.append(frame)
+    # Save the frames to a BytesIO object as a new gif file
     output = io.BytesIO()
-    image.save(output, format="PNG")
-    # Seek to the beginning of the output
-    output.seek(0)
-    # Read the output as bytes
-    resized_image_data = output.read()
-    # Close the output
-    output.close()
-    # Return the resized image data
-    return resized_image_data
-
+    frames[0].save(output, format="GIF", save_all=True, append_images=frames[1:], loop=0)
+    #
