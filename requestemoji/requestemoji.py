@@ -2,7 +2,7 @@ import discord
 from redbot.core import commands, checks, errors
 from redbot.core.utils.chat_formatting import pagify
 from discord.ext.commands.converter import EmojiConverter
-from PIL import Image
+from PIL import Image, ImageOps, ImageDraw, ImageFont, ImageFilter # Import the PIL modules for image processing
 import io
 import asyncio # Import asyncio for handling timeout error
 
@@ -67,15 +67,22 @@ class RequestEmoji(commands.Cog):
     if reaction.emoji == "\u2705":
       try: # Try to create the emoji using ctx.guild.create_custom_emoji()
         emoji = await ctx.guild.create_custom_emoji(name=name, image=image_data)
-        await ctx.send(f"The emoji {emoji} was added successfully.")
-      except Exception as e: # If something goes wrong, raise an error and send a message
-        raise errors.UserFeedbackCheckFailure(f"Something went wrong while creating the emoji: {e}")
-        await ctx.send(f"There was an error while creating the emoji. Please try again later.")
+        await ctx.send(f"The emoji {emoji} was added successfully by {user.mention} for {ctx.author.mention}.") # Change the message to include the mention of the requester and the approver
+      except discord.HTTPException as e: # If something goes wrong, raise an error and send a message
+        if e.code == 30008: # If the error code is 30008, it means that the maximum number of emojis has been reached
+          raise errors.UserFeedbackCheckFailure("The server has reached the maximum number of emojis.")
+          await ctx.send("The server has reached the maximum number of emojis. Please delete some existing emojis before requesting a new one.")
+        elif e.code == 50035: # If the error code is 50035, it means that the name or image is invalid
+          raise errors.UserFeedbackCheckFailure("The name or image is invalid.")
+          await ctx.send("The name or image is invalid. Please try again with a valid name and image.")
+        else: # If the error code is something else, it means that there is an unknown error
+          raise errors.UserFeedbackCheckFailure(f"Something went wrong while creating the emoji: {e}")
+          await ctx.send(f"There was an error while creating the emoji. Please try again later.")
         return
     
     # If the reaction is an x, send a message to inform that the request was denied
     if reaction.emoji == "\u274c":
-      await ctx.send(f"The emoji request for {name} was denied by {user.mention}.")
+      await ctx.send(f"The emoji request for {name} was denied by {user.mention} for {ctx.author.mention}.") # Change the message to include the mention of the requester and the approver
 
 # Define a function that resizes the image using thumbnail algorithm and preserves the aspect ratio
 def resize_image(image_data, size):
@@ -136,3 +143,4 @@ def quick_sort(numbers):
     larger = quick_sort(larger)
     # Combine the sorted sublists and return them as the sorted list
     return smaller + [pivot] + larger
+
