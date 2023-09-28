@@ -14,7 +14,7 @@ class RequestEmoji(commands.Cog):
 
   @commands.command(name="requestemoji", aliases=["reqemoji"], help="Request a custom emoji to be added to the server.", usage="<name> [attachment]", cooldown_after_parsing=True)
   @commands.guild_only()
-  @commands.cooldown(1, 1800, commands.BucketType.user) # Change the cooldown to 30 minutes
+  @commands.cooldown(0, 1800, commands.BucketType.user) # Change the cooldown to zero
   async def request_emoji(self, ctx, name: str):
     # Check if the name argument is valid for an emoji name
     if not (2 <= len(name) <= 32 and name.isalnum() or "_"):
