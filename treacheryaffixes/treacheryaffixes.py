@@ -84,7 +84,11 @@ def format_embed(data, title):
         
             # If yes, bold and underline the row and add a newline at the end
             if start <= date_obj:
-                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(\"| \")} | {seasonal}\n" # Removed last pipe
+                # Define a variable for the backslash character
+                bs = "\\"
+
+                # Use the variable inside the f-string
+                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs + \" \")} | {seasonal}\n" # Removed last pipe
         
             # If no, skip it or handle it differently 
             else:
