@@ -84,7 +84,7 @@ def format_embed(data, title):
         
             # If yes, bold and underline the row and add a newline at the end
             if start <= date_obj:
-                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14} | {seasonal}\n"
+                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14} | {seasonal[:-1]}\n" # Removed last pipe
         
             # If no, skip it or handle it differently 
             else:
