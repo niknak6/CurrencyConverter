@@ -4,6 +4,7 @@ from redbot.core.utils.chat_formatting import box, bold
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
+import re # Added this line
 
 # Define a function to scrape the data from the website
 def scrape_data(url):
@@ -67,24 +68,33 @@ def format_table(data):
         date = row["start_date"]
         level2, level7, level14, seasonal = row["affix_names"]
         
-        # Parse the date using the new format '%Y/%b/%d\n\n\n     @ %Hh'
-        date_obj = datetime.strptime(date, "%Y/%b/%d\n\n\n     @ %Hh")
+        # Define a regex pattern to match the date format '%Y/%b/%d\n\n\n     @ %Hh'
+        date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}\n\n\n     @ \d{2}h") # Added this line
         
-        # Convert the date to US standard of MM/DD/YY and drop the time
-        date_str = date_obj.strftime("%m/%d/%y")
+        # Check if the date matches the pattern using match()
+        if date_pattern.match(date): # Added this line
+            # Parse the date using the format '%Y/%b/%d\n\n\n     @ %Hh'
+            date_obj = datetime.strptime(date, "%Y/%b/%d\n\n\n     @ %Hh")
         
-        # Check if the date is within the current week
-        today = datetime.today()
-        start = today - timedelta(days=today.weekday())
-        end = start + timedelta(days=6)
+            # Convert the date to US standard of MM/DD/YY and drop the time
+            date_str = date_obj.strftime("%m/%d/%y")
         
-        # If yes, bold the row
-        if start <= date_obj <= end:
-            table.append(bold(f"{date_str}\t{level2}\t{level7}\t{level14}\t{seasonal}"))
+            # Check if the date is within the current week
+            today = datetime.today()
+            start = today - timedelta(days=today.weekday())
+            end = start + timedelta(days=6)
         
-        # If no, add the row as it is
-        else:
-            table.append(f"{date_str}\t{level2}\t{level7}\t{level14}\t{seasonal}")
+            # If yes, bold the row
+            if start <= date_obj <= end:
+                table.append(bold(f"{date_str}\t{level2}\t{level7}\t{level14}\t{seasonal}"))
+        
+            # If no, add the row as it is
+            else:
+                table.append(f"{date_str}\t{level2}\t{level7}\t{level14}\t{seasonal}")
+        
+        else: # Added this line
+            # Skip the row or handle it differently
+            continue
     
     # Join the table rows with newlines and return the result
     return "\n".join(table)
