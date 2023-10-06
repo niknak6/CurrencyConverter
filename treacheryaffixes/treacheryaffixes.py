@@ -77,21 +77,21 @@ def format_embed(data, title):
             # Convert the date to US standard of MM/DD/YY and drop the time
             date_str = date_obj.strftime("%m/%d/%y")
         
-            # Check if the date is within the current week
+            # Check if the date is within or after the current week
             today = datetime.today()
             start = today - timedelta(days=(today.weekday() - 1) % 7) # Tuesday is weekday 1
             end = start + timedelta(days=6)
         
             # If yes, bold and underline the row and add a newline at the end
-            if start <= date_obj <= end:
+            if start <= date_obj:
                 embed_description += f"**__{date_str} | {level2} | {level7} | {level14} | {seasonal}__**\n"
         
-            # If no, add a newline at both ends of the row 
+            # If no, skip it or handle it differently 
             else:
-                embed_description += f"\n{date_str} | {level2} | {level7} | {level14} | {seasonal}\n"
+                continue
         
         else:
-            # Skip the row or handle it differently
+            # Skip it or handle it differently 
             continue
     
     # Create an embed message with a title and a description using discord.Embed()
@@ -113,23 +113,10 @@ class TreacheryAffixes(commands.Cog):
         # Define a list of urls of the website
         urls = ["https://keystone.guru/affixes", "https://keystone.guru/affixes?offset=1"]
 
-        # Loop through each url in the list
-        for url in urls:
-            # Scrape the data from the website using the function
-            data = scrape_data(url)
+        # Create one embed message with two fields, one for the current week and one for the next week
+        embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
+        embed_message.add_field(name="Current week", value=format_embed(scrape_data("https://keystone.guru/affixes"), "Current week"))
+        embed_message.add_field(name="Next week", value=format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Next week"))
 
-            # Check if the data is not None
-            if data:
-                # Format the data as an embed message using the function
-                # Use a different title depending on the url
-                if url.endswith("offset=1"):
-                    title = "Next week's M+ Affixes from [keystone.guru]"
-                else:
-                    title = "Current week's M+ Affixes from [keystone.guru]"
-                embed_message = format_embed(data, title)
-
-                # Send the embed message to the channel
-                await ctx.send(embed=embed_message)
-            else:
-                # Send an error message if the data is None
-                await ctx.send(f"Could not get the affixes data from [keystone.guru].")
+        # Send the embed message to the channel
+        await ctx.send(embed=embed_message)
