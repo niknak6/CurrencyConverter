@@ -62,7 +62,7 @@ def format_embed(data, title):
                 
                 end = start + timedelta(days=6)
             
-                # Check if the date falls within a range of 6 weeks
+                # Check if the date falls within a range of 6 weeks starting from the current week
                 if start <= date_obj <= end + timedelta(weeks=6):
                     bs = "\\"
                     embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
