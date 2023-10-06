@@ -66,7 +66,7 @@ def format_embed(data, title):
                 continue
         
         else:
-            return f"Unexpected date format: {date}"
+            continue
     
     embed_message = discord.Embed(title=title, description=embed_description) 
     return embed_message 
@@ -98,6 +98,20 @@ class TreacheryAffixes(commands.Cog):
             await ctx.send(f"Upcoming weeks embed: {upcoming_weeks_embed}")
         else:
             await ctx.send(f"Upcoming weeks embed: {upcoming_weeks_embed.description}")
+
+        if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
+            embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
+            embed_message.add_field(name="Current week", value=current_week_embed.description)
+            embed_message.add_field(name="Upcoming weeks", value=upcoming_weeks_embed.description)
+
+            await ctx.send(embed=embed_message)
+
+    @commands.command()
+    async def affixes(self, ctx):
+        urls = ["https://keystone.guru/affixes", "https://keystone.guru/affixes?offset=1"]
+
+        current_week_embed = format_embed(scrape_data("https://keystone.guru/affixes"), "Current week")
+        upcoming_weeks_embed = format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Upcoming weeks")
 
         if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
             embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
