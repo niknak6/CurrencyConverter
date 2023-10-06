@@ -115,8 +115,8 @@ class TreacheryAffixes(commands.Cog):
 
         # Create one embed message with two fields, one for the current week and one for the next week
         embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
-        embed_message.add_field(name="Current week", value=format_embed(scrape_data("https://keystone.guru/affixes"), "Current week"))
-        embed_message.add_field(name="Next week", value=format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Next week"))
+        embed_message.add_field(name="Current week", value=format_embed(scrape_data("https://keystone.guru/affixes"), "Current week").description)
+        embed_message.add_field(name="Next week", value=format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Next week").description)
 
         # Send the embed message to the channel
         await ctx.send(embed=embed_message)
