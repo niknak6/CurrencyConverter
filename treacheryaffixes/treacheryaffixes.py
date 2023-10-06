@@ -1,4 +1,5 @@
 # Import the necessary modules
+import discord
 from redbot.core import commands
 from redbot.core.utils.chat_formatting import bold
 from datetime import datetime, timedelta
