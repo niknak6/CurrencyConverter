@@ -1,10 +1,10 @@
 # Import the necessary modules
 from redbot.core import commands
-from redbot.core.utils.chat_formatting import box, bold
+from redbot.core.utils.chat_formatting import bold
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
-import re # Added this line
+import re
 
 # Define a function to scrape the data from the website
 def scrape_data(url):
@@ -54,25 +54,22 @@ def scrape_data(url):
         # Return None if the response status code is not 200 (OK)
         return None
 
-# Define a function to format the data as a table
-def format_table(data):
-    # Initialize an empty list to store the table rows
-    table = []
+# Define a function to format the data as an embed message
+def format_embed(data, title):
+    # Initialize an empty string to store the embed description
+    embed_description = ""
     
-    # Add the header row with column names
-    table.append("Date\t\tLevel 2\t\tLevel 7\t\tLevel 14\tSeasonal")
-    
-    # Loop through the data and add each row
+    # Loop through the data and add each row to the embed description
     for row in data:
         # Get the date and the affixes from the dictionary
         date = row["start_date"]
         level2, level7, level14, seasonal = row["affix_names"]
         
         # Define a regex pattern to match the date format '%Y/%b/%d\n\n\n     @ %Hh'
-        date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}\n\n\n     @ \d{2}h") # Added this line
+        date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}\n\n\n     @ \d{2}h")
         
         # Check if the date matches the pattern using match()
-        if date_pattern.match(date): # Added this line
+        if date_pattern.match(date):
             # Parse the date using the format '%Y/%b/%d\n\n\n     @ %Hh'
             date_obj = datetime.strptime(date, "%Y/%b/%d\n\n\n     @ %Hh")
         
@@ -81,23 +78,26 @@ def format_table(data):
         
             # Check if the date is within the current week
             today = datetime.today()
-            start = today - timedelta(days=today.weekday())
+            start = today - timedelta(days=(today.weekday() - 1) % 7) # Tuesday is weekday 1
             end = start + timedelta(days=6)
         
-            # If yes, bold the row
+            # If yes, bold and underline the row and add a newline at the end
             if start <= date_obj <= end:
-                table.append(bold(f"{date_str}\t{level2}\t{level7}\t{level14}\t{seasonal}"))
+                embed_description += f"**__{date_str} | {level2} | {level7} | {level14} | {seasonal}__**\n"
         
-            # If no, add the row as it is
+            # If no, add a newline at both ends of the row 
             else:
-                table.append(f"{date_str}\t{level2}\t{level7}\t{level14}\t{seasonal}")
+                embed_description += f"\n{date_str} | {level2} | {level7} | {level14} | {seasonal}\n"
         
-        else: # Added this line
+        else:
             # Skip the row or handle it differently
             continue
     
-    # Join the table rows with newlines and return the result
-    return "\n".join(table)
+    # Create an embed message with a title and a description using discord.Embed()
+    embed_message = discord.Embed(title=title, description=embed_description)
+    
+    # Return the embed message object
+    return embed_message
 
 # Define a class for the cog
 class TreacheryAffixes(commands.Cog):
@@ -119,14 +119,16 @@ class TreacheryAffixes(commands.Cog):
 
             # Check if the data is not None
             if data:
-                # Format the data as a table using the function
-                table = format_table(data)
-
-                # Send the table in a box to the channel with a title indicating which week it is
+                # Format the data as an embed message using the function
+                # Use a different title depending on the url
                 if url.endswith("offset=1"):
-                    await ctx.send(f"Next week's M+ Affixes from [keystone.guru]:\n{box(table)}")
+                    title = "Next week's M+ Affixes from [keystone.guru](https://support.discord.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline-)"
                 else:
-                    await ctx.send(f"Current week's M+ Affixes from [keystone.guru]:\n{box(table)}")
+                    title = "Current week's M+ Affixes from [keystone.guru](https://support.discord.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline-)"
+                embed_message = format_embed(data, title)
+
+                # Send the embed message to the channel
+                await ctx.send(embed=embed_message)
             else:
                 # Send an error message if the data is None
-                await ctx.send(f"Could not get the affixes data from [keystone.guru].")
+                await ctx.send(f"Could not get the affixes data from [keystone.guru](https://support.discord.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline-).")
