@@ -41,6 +41,10 @@ def scrape_data(url):
                     affix_name = affix.get_text().strip().rstrip("| ")
                     # Append the cleaned affix name to the list
                     affix_names.append(affix_name)
+
+                # Slice the list to only include the first three elements
+                affix_names = affix_names[:3]
+
                 row_data["affix_names"] = affix_names
 
                 # Append the row data to the affixes data list
@@ -66,7 +70,7 @@ def format_embed(data, title):
     for row in data:
         # Get the date and the affixes from the dictionary
         date = row["start_date"]
-        level2, level7, level14, seasonal = row["affix_names"]
+        level2, level7, level14 = row["affix_names"]
         
         # Define a regex pattern to match the date format '%Y/%b/%d\n\n\n     @ %Hh'
         date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}\n\n\n     @ \d{2}h")
@@ -90,7 +94,7 @@ def format_embed(data, title):
                 bs = "\\"
 
                 # Use the variable outside of the curly braces of the f-string
-                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)} | {seasonal.rstrip(bs)}\n" # Removed last pipe and backslash from both level14 and seasonal
+                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n" 
         
             # If no, skip it or handle it differently 
             else:
@@ -122,10 +126,7 @@ class TreacheryAffixes(commands.Cog):
         # Create one embed message with two fields, one for the current week and one for the upcoming weeks
         embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
         embed_message.add_field(name="Current week", value=format_embed(scrape_data("https://keystone.guru/affixes"), "Current week").description)
-        embed_message.add_field(name="Upcoming weeks", value=format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Upcoming weeks").description) # Added quotation mark and parenthesis
+        embed_message.add_field(name="Upcoming weeks", value=format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Upcoming weeks").description)
 
         # Remove the emojis from the embed message
-        # embed_message.set_footer(text=":fire: :zap: :snowflake: :skull:")
-
-        # Send the embed message to the channel
-        await ctx.send(embed=embed_message)
+        # embed_message.set_footer(text
