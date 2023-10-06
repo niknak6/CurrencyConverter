@@ -50,47 +50,37 @@ def scrape_data(url):
                 # Append the row data to the affixes data list
                 affixes_data.append(row_data)
 
-            print(f"Affixes data: {affixes_data}")  # Print out all fetched data
-
             # Return the affixes data list
             return affixes_data
         
         else:
-            print("Table element not found")  # Print a message if the table element does not exist
-            return None
+            return "Table element not found"
     
     else:
-        print(f"Failed to fetch data from {url}")  # Print a message if the GET request fails
-        return None
+        return f"Failed to fetch data from {url}"
 
 # Define a function to format the data as an embed message
 def format_embed(data, title):
-    # Initialize an empty string to store the embed description
-    
+    if isinstance(data, str):
+        return data
+
     embed_description = ""
     
-    # Loop through the data and add each row to the embed description
     for row in data:
-        # Get the date and the affixes from the dictionary
         date = row["start_date"]
         level2, level7, level14 = row["affix_names"]
         
-        # Define a regex pattern to match the date format '%Y/%b/%d\n\n\n     @ %Hh'
         date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}\n\n\n     @ \d{2}h")
         
-        # Check if the date matches the pattern using match()
         if date_pattern.match(date):
-            # Parse the date using the format '%Y/%b/%d\n\n\n     @ %Hh'
             date_obj = datetime.strptime(date, "%Y/%b/%d\n\n\n     @ %Hh")
         
-            # Convert the date to US standard of MM/DD/YY and drop the time
             date_str = date_obj.strftime("%m/%d/%y")
         
-            # Check if the date is within or after this week or last week (if today is Monday)
             today = datetime.today()
-            start = today - timedelta(days=(today.weekday() - 1) % 7)  # Tuesday is weekday 1
+            start = today - timedelta(days=(today.weekday() - 1) % 7)
             
-            if today.weekday() < 1:  # If today is Monday (weekday 0), adjust start to last Tuesday
+            if today.weekday() < 1:
                 start -= timedelta(days=7)
             
             end = start + timedelta(days=6)
@@ -103,7 +93,7 @@ def format_embed(data, title):
                 continue
         
         else:
-            print(f"Unexpected date format: {date}")
+            return f"Unexpected date format: {date}"
     
     embed_message = discord.Embed(title=title, description=embed_description) 
     return embed_message 
@@ -114,11 +104,23 @@ class TreacheryAffixes(commands.Cog):
         self.bot = bot
     
     @commands.command()
-    async def affixes(self, ctx):
+    async def debugaffixes(self, ctx):
         urls = ["https://keystone.guru/affixes", "https://keystone.guru/affixes?offset=1"]
 
+        current_week_data = scrape_data("https://keystone.guru/affixes")
+        upcoming_weeks_data = scrape_data("https://keystone.guru/affixes?offset=1")
+
+        await ctx.send(f"Current week data: {current_week_data}")
+        await ctx.send(f"Upcoming weeks data: {upcoming_weeks_data}")
+
+        current_week_embed = format_embed(current_week_data, "Current week")
+        upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming weeks")
+
+        await ctx.send(f"Current week embed: {current_week_embed}")
+        await ctx.send(f"Upcoming weeks embed: {upcoming_weeks_embed}")
+
         embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
-        embed_message.add_field(name="Current week", value=format_embed(scrape_data("https://keystone.guru/affixes"), "Current week").description)
-        embed_message.add_field(name="Upcoming weeks", value=format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Upcoming weeks").description)
+        embed_message.add_field(name="Current week", value=current_week_embed.description)
+        embed_message.add_field(name="Upcoming weeks", value=upcoming_weeks_embed.description)
 
         await ctx.send(embed=embed_message)
