@@ -123,13 +123,13 @@ class TreacheryAffixes(commands.Cog):
                 # Format the data as an embed message using the function
                 # Use a different title depending on the url
                 if url.endswith("offset=1"):
-                    title = "Next week's M+ Affixes from [keystone.guru](https://support.discord.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline-)"
+                    title = "Next week's M+ Affixes from [keystone.guru]"
                 else:
-                    title = "Current week's M+ Affixes from [keystone.guru](https://support.discord.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline-)"
+                    title = "Current week's M+ Affixes from [keystone.guru]"
                 embed_message = format_embed(data, title)
 
                 # Send the embed message to the channel
                 await ctx.send(embed=embed_message)
             else:
                 # Send an error message if the data is None
-                await ctx.send(f"Could not get the affixes data from [keystone.guru](https://support.discord.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline-).")
+                await ctx.send(f"Could not get the affixes data from [keystone.guru].")
