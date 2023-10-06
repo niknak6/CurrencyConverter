@@ -33,7 +33,7 @@ def scrape_data(url):
         return f"Failed to fetch data from {url}"
 
 # Define a function to format the data as an embed message
-def format_embed(data, title):
+def format_embed(data, title, upcoming_weeks=6):
     if isinstance(data, str):
         return data
 
@@ -62,8 +62,8 @@ def format_embed(data, title):
                 
                 end = start + timedelta(days=6)
             
-                # Check if the date falls within a range of 6 weeks starting from the current week
-                if start - timedelta(weeks=1) <= date_obj <= end + timedelta(weeks=6):
+                # Check if the date falls within a range of upcoming_weeks weeks starting from the current week
+                if start <= date_obj <= end + timedelta(weeks=upcoming_weeks-1):
                     bs = "\\"
                     embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
             
@@ -91,7 +91,7 @@ class TreacheryAffixes(commands.Cog):
         await ctx.send(f"Current week data: {current_week_data}")
         await ctx.send(f"Upcoming weeks data: {upcoming_weeks_data}")
 
-        current_week_embed = format_embed(current_week_data, "Current week")
+        current_week_embed = format_embed(current_week_data, "Current week", upcoming_weeks=0)
         upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming weeks")
 
         if isinstance(current_week_embed, str):
@@ -115,7 +115,7 @@ class TreacheryAffixes(commands.Cog):
     async def affixes(self, ctx):
         urls = ["https://keystone.guru/affixes", "https://keystone.guru/affixes?offset=1"]
 
-        current_week_embed = format_embed(scrape_data("https://keystone.guru/affixes"), "Current week")
+        current_week_embed = format_embed(scrape_data("https://keystone.guru/affixes"), "Current week", upcoming_weeks=0)
         upcoming_weeks_embed = format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Upcoming weeks")
 
         if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
