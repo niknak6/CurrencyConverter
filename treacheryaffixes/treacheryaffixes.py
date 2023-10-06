@@ -97,8 +97,11 @@ def format_embed(data, title):
     # Create an embed message with a title and a description using discord.Embed()
     embed_message = discord.Embed(title=title, description=embed_description)
     
-    # Return the embed message object
-    return embed_message
+    # Convert the embed message object to a dictionary that can be sent as a valid embed parameter
+    embed_message_dict = embed_message.to_dict() # Added this line
+    
+    # Return the embed message dictionary 
+    return embed_message_dict # Changed this line
 
 # Define a class for the cog
 class TreacheryAffixes(commands.Cog):
