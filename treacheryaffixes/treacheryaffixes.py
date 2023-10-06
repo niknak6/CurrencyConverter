@@ -50,15 +50,17 @@ def scrape_data(url):
                 # Append the row data to the affixes data list
                 affixes_data.append(row_data)
 
+            print(f"Affixes data: {affixes_data}")  # Print out all fetched data
+
             # Return the affixes data list
             return affixes_data
         
         else:
-            # Return None if the table element does not exist
+            print("Table element not found")  # Print a message if the table element does not exist
             return None
     
     else:
-        # Return None if the response status code is not 200 (OK)
+        print(f"Failed to fetch data from {url}")  # Print a message if the GET request fails
         return None
 
 # Define a function to format the data as an embed message
