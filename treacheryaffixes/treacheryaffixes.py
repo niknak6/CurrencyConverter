@@ -53,15 +53,17 @@ def format_embed(data, title):
                 date_str = date_obj.strftime("%m/%d/%y")
             
                 today = datetime.today()
-                start = today - timedelta(days=(today.weekday() - 1) % 7)
                 
-                if today.weekday() < 1:
+                # Adjust the start of the week to Tuesday
+                start = today - timedelta(days=(today.weekday() - 2) % 7)
+                
+                if today.weekday() < 2:
                     start -= timedelta(days=7)
                 
                 end = start + timedelta(days=6)
             
-                # Check if the date falls within a range of weeks
-                if start - timedelta(weeks=2) <= date_obj <= end + timedelta(weeks=2):
+                # Check if the date falls within a range of 6 weeks
+                if start <= date_obj <= end + timedelta(weeks=6):
                     bs = "\\"
                     embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
             
