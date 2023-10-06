@@ -43,10 +43,10 @@ def format_embed(data, title):
         date = row["start_date"]
         level2, level7, level14 = row["affix_names"]
         
-        date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}\n\n\n     @ %Hh")
+        date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}.*")
         
         if date_pattern.match(date):
-            date_obj = datetime.strptime(date, "%Y/%b/%d\n\n\n     @ %Hh")
+            date_obj = datetime.strptime(date[:15], "%Y/%b/%d\n\n\n")
         
             date_str = date_obj.strftime("%m/%d/%y")
         
