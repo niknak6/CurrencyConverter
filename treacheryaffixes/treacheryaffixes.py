@@ -84,7 +84,7 @@ def format_embed(data, title):
         
             # If yes, bold and underline the row and add a newline at the end
             if start <= date_obj:
-                embed_description += f"**__{date_str} | {level2} | {level7} | {level14} | {seasonal}__**\n"
+                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14} | {seasonal}\n"
         
             # If no, skip it or handle it differently 
             else:
@@ -118,8 +118,8 @@ class TreacheryAffixes(commands.Cog):
         embed_message.add_field(name="Current week", value=format_embed(scrape_data("https://keystone.guru/affixes"), "Current week").description)
         embed_message.add_field(name="Upcoming weeks", value=format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Upcoming weeks").description)
 
-        # Add some emojis to the embed message to make it more appealing and interesting
-        embed_message.set_footer(text=":fire: :zap: :snowflake: :skull:")
+        # Remove the emojis from the embed message
+        # embed_message.set_footer(text=":fire: :zap: :snowflake: :skull:")
 
         # Send the embed message to the channel
         await ctx.send(embed=embed_message)
