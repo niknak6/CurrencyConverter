@@ -37,7 +37,9 @@ def scrape_data(url):
                 # Get the affix names from the other columns
                 affix_names = []
                 for affix in row.find_all("td")[1:]:
-                    affix_name = affix.get_text().strip()
+                    # Get the text of the affix and remove any trailing pipe or whitespace characters
+                    affix_name = affix.get_text().strip().rstrip("| ")
+                    # Append the cleaned affix name to the list
                     affix_names.append(affix_name)
                 row_data["affix_names"] = affix_names
 
@@ -120,10 +122,4 @@ class TreacheryAffixes(commands.Cog):
         # Create one embed message with two fields, one for the current week and one for the upcoming weeks
         embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
         embed_message.add_field(name="Current week", value=format_embed(scrape_data("https://keystone.guru/affixes"), "Current week").description)
-        embed_message.add_field(name="Upcoming weeks", value=format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Upcoming weeks").description)
-
-        # Remove the emojis from the embed message
-        # embed_message.set_footer(text=":fire: :zap: :snowflake: :skull:")
-
-        # Send the embed message to the channel
-        await ctx.send(embed=embed_message)
+        embed_message.add_field(name="Upcoming weeks", value=format_embed(scrape_data("https://keystone.guru/
