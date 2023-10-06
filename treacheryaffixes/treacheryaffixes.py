@@ -67,19 +67,24 @@ def format_table(data):
         date = row["start_date"]
         level2, level7, level14, seasonal = row["affix_names"]
         
+        # Parse the date using the new format '%Y/%b/%d\n\n\n     @ %Hh'
+        date_obj = datetime.strptime(date, "%Y/%b/%d\n\n\n     @ %Hh")
+        
+        # Convert the date to US standard of MM/DD/YY and drop the time
+        date_str = date_obj.strftime("%m/%d/%y")
+        
         # Check if the date is within the current week
         today = datetime.today()
         start = today - timedelta(days=today.weekday())
         end = start + timedelta(days=6)
-        date_obj = datetime.strptime(date, "%m/%d/%y")
         
         # If yes, bold the row
         if start <= date_obj <= end:
-            table.append(bold(f"{date}\t{level2}\t{level7}\t{level14}\t{seasonal}"))
+            table.append(bold(f"{date_str}\t{level2}\t{level7}\t{level14}\t{seasonal}"))
         
         # If no, add the row as it is
         else:
-            table.append(f"{date}\t{level2}\t{level7}\t{level14}\t{seasonal}")
+            table.append(f"{date_str}\t{level2}\t{level7}\t{level14}\t{seasonal}")
     
     # Join the table rows with newlines and return the result
     return "\n".join(table)
