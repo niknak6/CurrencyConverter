@@ -43,25 +43,27 @@ def format_embed(data, title):
         date = row["start_date"]
         level2, level7, level14 = row["affix_names"]
         
-        date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}.*")
-        
-        if date_pattern.match(date):
-            date_obj = datetime.strptime(date[:15], "%Y/%b/%d\n\n\n")
-        
-            date_str = date_obj.strftime("%m/%d/%y")
-        
-            today = datetime.today()
-            start = today - timedelta(days=(today.weekday() - 1) % 7)
+        # Check if the date string contains digits
+        if any(char.isdigit() for char in date):
+            date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}.*")
             
-            if today.weekday() < 1:
-                start -= timedelta(days=7)
+            if date_pattern.match(date):
+                date_obj = datetime.strptime(date[:15], "%Y/%b/%d\n\n\n")
             
-            end = start + timedelta(days=6)
-        
-            if start <= date_obj <= end:
-                bs = "\\"
-                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
-        
+                date_str = date_obj.strftime("%m/%d/%y")
+            
+                today = datetime.today()
+                start = today - timedelta(days=(today.weekday() - 1) % 7)
+                
+                if today.weekday() < 1:
+                    start -= timedelta(days=7)
+                
+                end = start + timedelta(days=6)
+            
+                if start <= date_obj <= end:
+                    bs = "\\"
+                    embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
+            
             else:
                 continue
         
