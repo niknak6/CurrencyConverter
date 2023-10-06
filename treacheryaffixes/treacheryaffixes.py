@@ -129,4 +129,7 @@ class TreacheryAffixes(commands.Cog):
         embed_message.add_field(name="Upcoming weeks", value=format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Upcoming weeks").description)
 
         # Remove the emojis from the embed message
-        # embed_message.set_footer(text
+        # embed_message.set_footer(text=":fire: :zap: :snowflake: :skull:")
+
+        # Send the embed message to the channel
+        await ctx.send(embed=embed_message)
