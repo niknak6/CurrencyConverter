@@ -7,10 +7,14 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
+class ScrapingError(Exception):
+    pass
+
 # Define a function to scrape the data from the website
 def scrape_data(url):
-    response = requests.get(url)
-    if response.status_code == 200:
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception if the response status code is not 200
         soup = BeautifulSoup(response.content, "html.parser")
         table = soup.find("table", class_="affixes_overview_table")
         if table:
@@ -28,9 +32,9 @@ def scrape_data(url):
                 affixes_data.append(row_data)
             return affixes_data
         else:
-            return "Table element not found"
-    else:
-        return f"Failed to fetch data from {url}"
+            raise ScrapingError("Table element not found")
+    except requests.exceptions.RequestException as e:
+        raise ScrapingError(f"Error fetching data from {url}: {e}")
 
 # Define a function to format the data as an embed message
 def format_embed(data, title, upcoming_weeks=6):
@@ -85,42 +89,28 @@ class TreacheryAffixes(commands.Cog):
     async def debugaffixes(self, ctx):
         urls = ["https://keystone.guru/affixes", "https://keystone.guru/affixes?offset=1"]
 
-        current_week_data = scrape_data("https://keystone.guru/affixes")
-        upcoming_weeks_data = scrape_data("https://keystone.guru/affixes?offset=1")
+        try:
+            current_week_data = scrape_data(urls[0])
+            upcoming_weeks_data = scrape_data(urls[1])
 
-        await ctx.send(f"Current week data: {current_week_data}")
-        await ctx.send(f"Upcoming weeks data: {upcoming_weeks_data}")
+            current_week_embed = format_embed(current_week_data, "Current week", upcoming_weeks=1)
+            upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming weeks")
 
-        current_week_embed = format_embed(current_week_data, "Current week", upcoming_weeks=1)
-        upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming weeks")
+            if isinstance(current_week_embed, str):
+                await ctx.send(f"Current week embed: {current_week_embed}")
+            else:
+                await ctx.send(f"Current week embed: {current_week_embed.description}")
 
-        if isinstance(current_week_embed, str):
-            await ctx.send(f"Current week embed: {current_week_embed}")
-        else:
-            await ctx.send(f"Current week embed: {current_week_embed.description}")
+            if isinstance(upcoming_weeks_embed, str):
+                await ctx.send(f"Upcoming weeks embed: {upcoming_weeks_embed}")
+            else:
+                await ctx.send(f"Upcoming weeks embed: {upcoming_weeks_embed.description}")
 
-        if isinstance(upcoming_weeks_embed, str):
-            await ctx.send(f"Upcoming weeks embed: {upcoming_weeks_embed}")
-        else:
-            await ctx.send(f"Upcoming weeks embed: {upcoming_weeks_embed.description}")
+            if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
+                embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
+                embed_message.add_field(name="Current week", value=current_week_embed.description)
+                embed_message.add_field(name="Upcoming weeks", value=upcoming_weeks_embed.description)
 
-        if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
-            embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
-            embed_message.add_field(name="Current week", value=current_week_embed.description)
-            embed_message.add_field(name="Upcoming weeks", value=upcoming_weeks_embed.description)
-
-            await ctx.send(embed=embed_message)
-
-    @commands.command()
-    async def affixes(self, ctx):
-        urls = ["https://keystone.guru/affixes", "https://keystone.guru/affixes?offset=1"]
-
-        current_week_embed = format_embed(scrape_data("https://keystone.guru/affixes"), "Current week", upcoming_weeks=1)
-        upcoming_weeks_embed = format_embed(scrape_data("https://keystone.guru/affixes?offset=1"), "Upcoming weeks")
-
-        if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
-            embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
-            embed_message.add_field(name="Current week", value=current_week_embed.description)
-            embed_message.add_field(name="Upcoming weeks", value=upcoming_weeks_embed.description)
-
-            await ctx.send(embed=embed_message)
+                await ctx.send(embed=embed_message)
+        except ScrapingError as e:
+            await ctx.send(f"An error occurred: {e}")
