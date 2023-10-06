@@ -64,6 +64,7 @@ def scrape_data(url):
 # Define a function to format the data as an embed message
 def format_embed(data, title):
     # Initialize an empty string to store the embed description
+    
     embed_description = ""
     
     # Loop through the data and add each row to the embed description
@@ -100,7 +101,7 @@ def format_embed(data, title):
                 continue
         
         else:
-            continue
+            print(f"Unexpected date format: {date}")
     
     embed_message = discord.Embed(title=title, description=embed_description) 
     return embed_message 
