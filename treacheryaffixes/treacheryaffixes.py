@@ -59,13 +59,13 @@ def format_table(data):
     table = []
     
     # Add the header row with column names
-    table.append("Date\t\tLevel 4\t\tLevel 7\t\tLevel 10")
+    table.append("Date\t\tLevel 2\t\tLevel 7\t\tLevel 14\tSeasonal")
     
     # Loop through the data and add each row
     for row in data:
         # Get the date and the affixes from the dictionary
         date = row["start_date"]
-        level4, level7, level10 = row["affix_names"]
+        level2, level7, level14, seasonal = row["affix_names"]
         
         # Check if the date is within the current week
         today = datetime.today()
@@ -75,11 +75,11 @@ def format_table(data):
         
         # If yes, bold the row
         if start <= date_obj <= end:
-            table.append(bold(f"{date}\t{level4}\t{level7}\t{level10}"))
+            table.append(bold(f"{date}\t{level2}\t{level7}\t{level14}\t{seasonal}"))
         
         # If no, add the row as it is
         else:
-            table.append(f"{date}\t{level4}\t{level7}\t{level10}")
+            table.append(f"{date}\t{level2}\t{level7}\t{level14}\t{seasonal}")
     
     # Join the table rows with newlines and return the result
     return "\n".join(table)
