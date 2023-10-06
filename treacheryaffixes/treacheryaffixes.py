@@ -86,7 +86,7 @@ class TreacheryAffixes(commands.Cog):
         self.bot = bot
     
     @commands.command()
-    async def debugaffixes(self, ctx):
+    async def affixes(self, ctx):
         urls = ["https://keystone.guru/affixes", "https://keystone.guru/affixes?offset=1"]
 
         try:
@@ -96,21 +96,17 @@ class TreacheryAffixes(commands.Cog):
             current_week_embed = format_embed(current_week_data, "Current week", upcoming_weeks=1)
             upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming weeks")
 
-            if isinstance(current_week_embed, str):
-                await ctx.send(f"Current week embed: {current_week_embed}")
-            else:
-                await ctx.send(f"Current week embed: {current_week_embed.description}")
-
-            if isinstance(upcoming_weeks_embed, str):
-                await ctx.send(f"Upcoming weeks embed: {upcoming_weeks_embed}")
-            else:
-                await ctx.send(f"Upcoming weeks embed: {upcoming_weeks_embed.description}")
-
             if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
                 embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
                 embed_message.add_field(name="Current week", value=current_week_embed.description)
                 embed_message.add_field(name="Upcoming weeks", value=upcoming_weeks_embed.description)
 
                 await ctx.send(embed=embed_message)
+            else:
+                await ctx.send(f"An error occurred while formatting the data.")
         except ScrapingError as e:
             await ctx.send(f"An error occurred: {e}")
+
+# Add your bot setup here (if applicable)
+
+# Example usage: bot.add_cog(TreacheryAffixes(bot))
