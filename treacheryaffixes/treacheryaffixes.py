@@ -88,7 +88,7 @@ def format_embed(data, title):
                 bs = "\\"
 
                 # Use the variable outside of the curly braces of the f-string
-                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)} | {seasonal}\n" # Removed last pipe and backslash
+                embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)} | {seasonal.rstrip(bs)}\n" # Removed last pipe and backslash from both level14 and seasonal
         
             # If no, skip it or handle it differently 
             else:
