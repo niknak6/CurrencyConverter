@@ -107,4 +107,8 @@ class TreacheryAffixes(commands.Cog):
         if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
             embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
             embed_message.add_field(name="Current week", value=current_week_embed.description)
-            embed_message.add_field(name="Upcoming weeks", value=up
+            embed_message.add_field(name="Upcoming weeks", value=upcoming_weeks_embed.description)
+
+            await ctx.send(embed=embed_message)
+
+    @commands.command
