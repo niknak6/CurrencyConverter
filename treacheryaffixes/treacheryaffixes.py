@@ -97,7 +97,7 @@ class TreacheryAffixes(commands.Cog):
             upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming Weeks")
 
             if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
-                embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
+                embed_message = discord.Embed(title="Mythic+ Schedule")
                 embed_message.add_field(name="Current Week", value=current_week_embed.description)
                 embed_message.add_field(name="Upcoming Weeks", value=upcoming_weeks_embed.description)
 
