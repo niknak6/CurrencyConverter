@@ -21,10 +21,10 @@ class TreacheryToken(commands.Cog):
         soup = BeautifulSoup(response.content, "html.parser")
         # Find the span element with id="us-money-text" and get its text
         price = soup.find("span", id="us-money-text").text
-        # Remove the comma from the price and convert it to an integer
-        price = int(price.replace(",", ""))
-        # Format the price with commas and add a dollar sign
-        price = "${:,}".format(price)
+        # Remove the comma and the dollar sign from the price and convert it to an integer
+        price = int(price.replace(",", "").replace("$", ""))
+        # Format the price with commas
+        price = "{:,}".format(price)
         # Create an embed with the price and a gold coin emoji
         embed = discord.Embed(title=":coin: WoW Token Price :coin:", color=0xffd700)
         embed.add_field(name="US Region", value=price)
