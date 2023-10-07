@@ -74,7 +74,7 @@ class TikTokCog(commands.Cog):
 
 # Check if there are any mentions or pings in the message and append them to formatted_message
 if message.mentions:
-formatted_message += f"{message.clean_content}\n"
+    formatted_message += f"{message.clean_content}\n"
 
 # Repost the formatted message and remove the original message
 await message.channel.send(formatted_message)
