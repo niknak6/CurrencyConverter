@@ -1,10 +1,12 @@
-import discord
 import os
 import random
 import re
 import requests
 from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
+
+# Import the discord module
+import discord
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -80,8 +82,15 @@ class TikTokCog(commands.Cog):
         if len(text) + len(mentions) < 2000:
             formatted_message += f"{text} {' '.join(mentions)}"
 
-        # Escape any mentions in the formatted message to prevent unwanted pings
-        formatted_message = discord.utils.escape_mentions(formatted_message)
+        # Define a mention pattern that matches user, role, or channel mentions
+        mention_pattern = re.compile(r"<(@[!&]?|#)\d+>")
+
+        # Define a function that escapes a mention by adding a backslash before the @ sign
+        def escape_mention(match):
+            return match.group(0).replace("@", "\\@")
+
+        # Replace any mention in the formatted message with its escaped version using the re.sub function and the escape_mention function
+        formatted_message = re.sub(mention_pattern, escape_mention, formatted_message)
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
