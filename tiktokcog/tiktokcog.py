@@ -77,8 +77,8 @@ if message.mentions:
     formatted_message += f"{message.clean_content}\n"
 
 # Repost the formatted message and remove the original message
-await message.channel.send(formatted_message)
 await message.delete()
+await message.channel.send(formatted_message)
 
 # Delete the custom emoji
 await emoji.delete()
