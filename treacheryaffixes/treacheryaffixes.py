@@ -37,7 +37,7 @@ def scrape_data(url):
         raise ScrapingError(f"Error fetching data from {url}: {e}")
 
 # Define a function to format the data as an embed message
-def format_embed(data, title, upcoming_weeks=6):
+def format_embed(data, title, upcoming_weeks=8):
     if isinstance(data, str):
         return data
 
