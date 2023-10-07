@@ -72,9 +72,9 @@ class TikTokCog(commands.Cog):
         # Create a formatted message with the custom emoji and modified url
         formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}\n"
 
-**# Check if there are any mentions or pings in the message and append them to formatted_message**
-**if message.mentions:**
-**formatted_message += f"{message.clean_content}\n"**
+# Check if there are any mentions or pings in the message and append them to formatted_message
+if message.mentions:
+formatted_message += f"{message.clean_content}\n"
 
 # Repost the formatted message and remove the original message
 await message.channel.send(formatted_message)
