@@ -68,8 +68,19 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
-        # Create a formatted message with the custom emoji, the mention and modified url
+        # Extract the text and mentions from the original message
+        text = message.content.replace(tiktok_url.group(0), "").strip()
+        mentions = [user.mention for user in message.mentions]
+
+        # Create a formatted message with the custom emoji, the mention and modified url of tiktok video, and any additional text and mentions
         formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}\n"
+
+        # Append any additional text and mentions to the formatted message if they are not too long
+        if len(text) + len(mentions) < 2000:
+            formatted_message += f"{text} {' '.join(mentions)}"
+
+        # Escape any mentions in the formatted message to prevent unwanted pings
+        formatted_message = discord.utils.escape_mentions(formatted_message)
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
