@@ -1,4 +1,3 @@
-import discord
 import os
 import random
 import re
@@ -69,20 +68,16 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
-        # Create a formatted message with the custom emoji and modified url
+        # Create a formatted message with the custom emoji, the mention and modified url
         formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}\n"
 
-        # Check if there are any mentions or pings in the message and append them to formatted_message
-        if message.mentions:
-            formatted_message += f"{message.clean_content}\n"
+        # Repost the formatted message and remove the original message
+        await message.channel.send(formatted_message)
+        await message.delete()
 
-            # Repost the formatted message and remove the original message
-            await message.delete()
-            await message.channel.send(formatted_message)
+        # Delete the custom emoji
+        await emoji.delete()
 
-            # Delete the custom emoji
-            await emoji.delete()
-
-# Delete the avatar.png and avatar_cropped.png files
-os.remove("avatar.png")
-os.remove("avatar_cropped.png")
+        # Delete the avatar.png and avatar_cropped.png files
+        os.remove("avatar.png")
+        os.remove("avatar_cropped.png")
