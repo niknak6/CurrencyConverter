@@ -93,13 +93,13 @@ class TreacheryAffixes(commands.Cog):
             current_week_data = scrape_data(urls[0])
             upcoming_weeks_data = scrape_data(urls[1])
 
-            current_week_embed = format_embed(current_week_data, "Current week", upcoming_weeks=1)
-            upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming weeks")
+            current_week_embed = format_embed(current_week_data, "Current Week", upcoming_weeks=1)
+            upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming Weeks")
 
             if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
                 embed_message = discord.Embed(title="M+ Affixes from keystone.guru")
-                embed_message.add_field(name="Current week", value=current_week_embed.description)
-                embed_message.add_field(name="Upcoming weeks", value=upcoming_weeks_embed.description)
+                embed_message.add_field(name="Current Week", value=current_week_embed.description)
+                embed_message.add_field(name="Upcoming Weeks", value=upcoming_weeks_embed.description)
 
                 await ctx.send(embed=embed_message)
             else:
