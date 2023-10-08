@@ -11,7 +11,7 @@ class TikTokCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # Compile the tiktok pattern only once
-        self.tiktok_pattern = re.compile(r"(?i)(https?://)?((\w+)\.)?tiktok.com/(.+)")
+        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)") # Modified line
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -24,7 +24,7 @@ class TikTokCog(commands.Cog):
             return
 
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
-        new_url = tiktok_url.expand(r"\1\2vxtiktok.com/\4")
+        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
 
         # Get the user object from the message
         user = message.author
@@ -69,7 +69,7 @@ class TikTokCog(commands.Cog):
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
         # Create a formatted message with the custom emoji, the mention and modified url
-        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}\n"
+        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}" # Modified line
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
