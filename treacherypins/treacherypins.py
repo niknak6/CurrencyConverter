@@ -73,7 +73,8 @@ class TreacheryPins(commands.Cog):
         
         previous_message = await channel.history(limit=1, before=message).__anext__() # use __anext__() to get the next value from an async generator
         
-        if author in previous_message.mentions and previous_message.author == self.bot and message.content and channel.id == self.push_pin_channel.get(author.id) and message.reference.message_id == previous_message.id:
+        # Check if the message.reference is not None before comparing the message IDs
+        if author in previous_message.mentions and previous_message.author == self.bot and message.content and channel.id == self.push_pin_channel.get(author.id) and message.reference is not None and message.reference.message_id == previous_message.id:
             # Get the message link and summary from the message object
             message_link = message.jump_url
             summary = f"{author.display_name}: {message.content}"
