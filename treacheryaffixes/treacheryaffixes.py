@@ -67,7 +67,8 @@ def format_embed(data, title, upcoming_weeks=8):
                 end = start + timedelta(days=6)
             
                 # Check if the date falls within a range of upcoming_weeks weeks starting from the current week
-                if start - timedelta(weeks=1) <= date_obj <= end + timedelta(weeks=upcoming_weeks):
+                # Change this line to fix the bug
+                if start <= date_obj <= end + timedelta(weeks=upcoming_weeks):
                     bs = "\\"
                     embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
             
@@ -106,7 +107,3 @@ class TreacheryAffixes(commands.Cog):
                 await ctx.send(f"An error occurred while formatting the data.")
         except ScrapingError as e:
             await ctx.send(f"An error occurred: {e}")
-
-# Add your bot setup here (if applicable)
-
-# Example usage: bot.add_cog(TreacheryAffixes(bot))
