@@ -8,6 +8,9 @@ import datetime
 # Import the checks module for checking permissions
 from redbot.core import checks
 
+# Import asyncio for creating tasks and timers
+import asyncio
+
 # Create a cog class that inherits from commands.Cog
 class TreacheryPins(commands.Cog):
     """A cog that allows users to pin messages with a push pin emoji."""
@@ -21,6 +24,10 @@ class TreacheryPins(commands.Cog):
         # Define a variable to store the ID of the "Pinnable Message" in each channel
         # You can also use a database instead of a variable
         self.pinnable_message_id = {}
+
+        # Define a variable to store the user who reacted with a push pin in each channel
+        # You can also use a database instead of a variable
+        self.push_pin_user = {}
 
     # Create a listener function that listens for the on_raw_reaction_add event
     @commands.Cog.listener()
@@ -39,7 +46,16 @@ class TreacheryPins(commands.Cog):
         # Check if the reaction emoji is a push pin and if the message is not pinned already
         if emoji.name == "📌" and not message.pinned:
             # Send a message to the channel where the reaction happened, tagging the user who reacted and asking them to provide a summary of the message they are pinning
-            await channel.send(f"{user.mention}, you have reacted with a push pin emoji to this message:\n{message.content}\nPlease reply with a summary of this message that you want to pin.")
+            request_message = await channel.send(f"{user.mention}, you have reacted with a push pin emoji to this message:\n{message.content}\nPlease reply with a summary of this message that you want to pin.")
+
+            # Store the user who reacted with a push pin in the variable or database
+            self.push_pin_user[channel.id] = user
+
+            # Store the channel where the reaction happened in the variable or database
+            self.push_pin_channel[user.id] = channel.id
+
+            # Create a task that waits for 3 minutes and then checks if there is a response
+            task = asyncio.create_task(self.wait_for_response(user, request_message))
 
     # Create another listener function that listens for the on_message event
     @commands.Cog.listener()
@@ -51,9 +67,9 @@ class TreacheryPins(commands.Cog):
         channel = message.channel
         author = message.author
 
-        # Check if the message author is tagged by the bot in the previous message in this channel, and if the message content is not empty
+        # Check if the message author is tagged by the bot in the previous message in this channel, and if the message content is not empty, and if the message is in the same channel as the reaction
         previous_message = await channel.history(limit=1, before=message).next()
-        if author in previous_message.mentions and previous_message.author == self.bot and message.content:
+        if author in previous_message.mentions and previous_message.author == self.bot and message.content and channel.id == self.push_pin_channel.get(author.id):
             # Get the message link and summary from the message object
             message_link = message.jump_url
             summary = f"{author.display_name}: {message.content}"
@@ -68,6 +84,29 @@ class TreacheryPins(commands.Cog):
 
             # Delete both messages that contain the summary and the bot's request, so that they do not clutter the channel
             await message.delete()
+            await previous_message.delete()
+
+    # Create an async function that waits for 3 minutes and then checks if there is a response
+    async def wait_for_response(self, user, request_message):
+        """This function waits for 3 minutes and then checks if there is a response."""
+
+        # Wait for 3 minutes using asyncio.sleep
+        await asyncio.sleep(180)
+
+        # Get the guild, channel, and author objects from the request message
+        guild = request_message.guild
+        channel = request_message.channel
+        author = request_message.author
+
+        # Check if the user is still tagged by the bot in the previous message in this channel, and if the message content is still empty
+        previous_message = await channel.history(limit=1, before=request_message).next()
+        if user in previous_message.mentions and previous_message.author == self.bot and not request_message.content:
+            # Cancel the task and send a message to inform the user that the time is up
+            task.cancel()
+            await channel.send(f"{user.mention}, you have not provided a summary of the message that you want to pin within 3 minutes. The request has been cancelled.")
+
+            # Delete both messages that contain the summary and the bot's request, so that they do not clutter the channel
+            await request_message.delete()
             await previous_message.delete()
 
     # Create a command function that allows an admin to set the "Pinnable Message" in the current channel
