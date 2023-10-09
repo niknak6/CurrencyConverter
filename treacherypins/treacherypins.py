@@ -25,6 +25,12 @@ class TreacheryPins(commands.Cog):
         # You can also use a database instead of a variable
         self.pinnable_message_id = {}
 
+        # Define a variable to store the user who reacted with a push pin in each channel
+        self.push_pin_user = {}
+
+        # Define a variable to store the channel where the reaction happened for each user
+        self.push_pin_channel = {}
+
     # Create a listener function that listens for the on_raw_reaction_add event
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -64,7 +70,9 @@ class TreacheryPins(commands.Cog):
         author = message.author
 
         # Check if the message author is tagged by the bot in the previous message in this channel, and if the message content is not empty, and if the message is in the same channel as the reaction, and if the message is a reply to the bot's request
-        previous_message = await channel.history(limit=1, before=message).next()
+        async for previous_message in channel.history(limit=1, before=message): # use async for to get the previous message from an async generator
+            break # only get the first message
+        
         if author in previous_message.mentions and previous_message.author == self.bot and message.content and channel.id == self.push_pin_channel.get(author.id) and message.reference.message_id == previous_message.id:
             # Get the message link and summary from the message object
             message_link = message.jump_url
@@ -95,7 +103,9 @@ class TreacheryPins(commands.Cog):
         author = request_message.author
 
         # Check if the user is still tagged by the bot in the previous message in this channel, and if the message content is still empty
-        previous_message = await channel.history(limit=1, before=request_message).next()
+        async for previous_message in channel.history(limit=1, before=request_message): # use async for to get the previous message from an async generator
+            break # only get the first message
+        
         if user in previous_message.mentions and previous_message.author == self.bot and not request_message.content:
             # Cancel the task and send a message to inform the user that the time is up
             task.cancel()
