@@ -70,8 +70,8 @@ class TreacheryPins(commands.Cog):
         author = message.author
 
         # Check if the message author is tagged by the bot in the previous message in this channel, and if the message content is not empty, and if the message is in the same channel as the reaction, and if the message is a reply to the bot's request
-        async for previous_message in channel.history(limit=1, before=message): # use async for to get the previous message from an async generator
-            break # only get the first message
+        
+        previous_message = await channel.history(limit=1, before=message).__anext__() # use __anext__() to get the next value from an async generator
         
         if author in previous_message.mentions and previous_message.author == self.bot and message.content and channel.id == self.push_pin_channel.get(author.id) and message.reference.message_id == previous_message.id:
             # Get the message link and summary from the message object
@@ -103,8 +103,8 @@ class TreacheryPins(commands.Cog):
         author = request_message.author
 
         # Check if the user is still tagged by the bot in the previous message in this channel, and if the message content is still empty
-        async for previous_message in channel.history(limit=1, before=request_message): # use async for to get the previous message from an async generator
-            break # only get the first message
+        
+        previous_message = await channel.history(limit=1, before=request_message).__anext__() # use __anext__() to get the next value from an async generator
         
         if user in previous_message.mentions and previous_message.author == self.bot and not request_message.content:
             # Cancel the task and send a message to inform the user that the time is up
