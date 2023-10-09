@@ -22,10 +22,6 @@ class TreacheryPins(commands.Cog):
         # You can also use a database instead of a variable
         self.pinnable_message_id = {}
 
-        # Define a variable to store the user who reacted with a push pin in each channel
-        # You can also use a database instead of a variable
-        self.push_pin_user = {}
-
     # Create a listener function that listens for the on_raw_reaction_add event
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -42,11 +38,8 @@ class TreacheryPins(commands.Cog):
 
         # Check if the reaction emoji is a push pin and if the message is not pinned already
         if emoji.name == "📌" and not message.pinned:
-            # Send a message to the user who reacted, asking them to provide a summary of the message they are pinning
-            await user.send(f"You have reacted with a push pin emoji to this message:\n{message.content}\nPlease reply with a summary of this message that you want to pin.")
-
-            # Store the user who reacted with a push pin in the variable or database
-            self.push_pin_user[channel.id] = user
+            # Send a message to the channel where the reaction happened, tagging the user who reacted and asking them to provide a summary of the message they are pinning
+            await channel.send(f"{user.mention}, you have reacted with a push pin emoji to this message:\n{message.content}\nPlease reply with a summary of this message that you want to pin.")
 
     # Create another listener function that listens for the on_message event
     @commands.Cog.listener()
@@ -58,8 +51,9 @@ class TreacheryPins(commands.Cog):
         channel = message.channel
         author = message.author
 
-        # Check if the message author is the same user who reacted with a push pin in this channel, and if the message content is not empty
-        if author == self.push_pin_user.get(channel.id) and message.content:
+        # Check if the message author is tagged by the bot in the previous message in this channel, and if the message content is not empty
+        previous_message = await channel.history(limit=1, before=message).next()
+        if author in previous_message.mentions and previous_message.author == self.bot and message.content:
             # Get the message link and summary from the message object
             message_link = message.jump_url
             summary = f"{author.display_name}: {message.content}"
@@ -72,8 +66,9 @@ class TreacheryPins(commands.Cog):
                 # Append the message link and summary to the "Pinnable Message" in a well formatted way
                 await pinnable_message.edit(content=pinnable_message.content + "\n" + f"📌 {summary}")
 
-            # Delete the message that contains the summary, so that it does not clutter the channel
+            # Delete both messages that contain the summary and the bot's request, so that they do not clutter the channel
             await message.delete()
+            await previous_message.delete()
 
     # Create a command function that allows an admin to set the "Pinnable Message" in the current channel
     @commands.command()
