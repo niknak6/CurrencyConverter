@@ -52,7 +52,8 @@ def format_embed(data, title, upcoming_weeks=8):
             date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}.*")
             
             if date_pattern.match(date):
-                date_obj = datetime.strptime(date[:15], "%Y/%b/%d\n\n\n")
+                # Strip any whitespace characters from the date string and use only the first 10 characters
+                date_obj = datetime.strptime(date.strip()[:10], "%Y/%b/%d")
             
                 date_str = date_obj.strftime("%m/%d/%y")
             
@@ -67,7 +68,8 @@ def format_embed(data, title, upcoming_weeks=8):
                 end = start + timedelta(days=6)
             
                 # Check if the date falls within a range of upcoming_weeks weeks starting from the current week
-                if start - timedelta(weeks=1) <= date_obj <= end + timedelta(weeks=upcoming_weeks):
+                # Use today - timedelta(days=today.weekday()) as the lower bound of the range instead of start
+                if today - timedelta(days=today.weekday()) <= date_obj <= end + timedelta(weeks=upcoming_weeks):
                     bs = "\\"
                     embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
             
