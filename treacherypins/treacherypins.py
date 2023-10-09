@@ -70,7 +70,7 @@ class TreacheryPins(commands.Cog):
                 pinnable_message = await channel.fetch_message(pinnable_message_id)
 
                 # Append the message link and summary to the "Pinnable Message" in a well formatted way
-                await pinnable_message.edit(content=pinnable_message.content + f"\n📌 {summary}")
+                await pinnable_message.edit(content=pinnable_message.content + "\n" + f"📌 {summary}")
 
             # Delete the message that contains the summary, so that it does not clutter the channel
             await message.delete()
@@ -99,6 +99,8 @@ class TreacheryPins(commands.Cog):
         # Store the ID of the new "Pinnable Message" in the variable or database
         self.pinnable_message_id[channel.id] = pinnable_message.id
 
+        # Pin the "Pinnable Message" to the channel
+        await pinnable_message.pin()
+
         # Send a confirmation message to the user
         await ctx.send(f"{ctx.author.mention}, you have successfully set the Pinnable Message in this channel.")
-
