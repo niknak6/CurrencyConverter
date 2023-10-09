@@ -100,4 +100,5 @@ class TreacheryPins(commands.Cog):
         self.pinnable_message_id[channel.id] = pinnable_message.id
 
         # Send a confirmation message to the user
-        await ctx.send(f"{ctx.author.mention}, you have successfully set the "Pinnable Message" in this channel.")
+        await ctx.send(f"{ctx.author.mention}, you have successfully set the Pinnable Message in this channel.")
+
