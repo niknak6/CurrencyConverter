@@ -29,7 +29,10 @@ def scrape_data(url):
                     affix_names.append(affix_name)
                 affix_names = affix_names[:3]
                 row_data["affix_names"] = affix_names
-                affixes_data.append(row_data)
+                # Change this line to reverse the order of the rows in the table
+                # Old line: affixes_data.append(row_data)
+                # New line: affixes_data.insert(0, row_data)
+                affixes_data.insert(0, row_data)
             return affixes_data
         else:
             raise ScrapingError("Table element not found")
@@ -60,9 +63,6 @@ def format_embed(data, title, upcoming_weeks=8):
                 
                 # Assume that a day runs from midnight to midnight Eastern Time, and weeks start on Tuesdays
                 # Add one week to the current date if it is Monday after 00:00 ET
-                # Change this line to account for this assumption
-                # Old line: start = today - timedelta(days=(today.weekday() - 2) % 7) - timedelta(weeks=1 if today.weekday() == 1 and today.hour < 15 else 0)
-                # New line: start = today - timedelta(days=(today.weekday() - 2) % 7) + timedelta(weeks=1 if today.weekday() == 0 and today.hour >= 0 else 0)
                 start = today - timedelta(days=(today.weekday() - 2) % 7) + timedelta(weeks=1 if today.weekday() == 0 and today.hour >= 0 else 0)
                 
                 if today.weekday() < 2:
