@@ -35,8 +35,8 @@ class TreacheryAffixes(commands.Cog):
 def get_affixes(week):
     # Initialize an empty list to store the affix names
     affixes = []
-    # Loop through the table cells that contain the affix icons and names
-    for td in week.find_all("td")[1:]:
+    # Loop through the table cells that have the affix icons and names using the class attribute of the div element inside each table cell # Change from index to class selector
+    for td in week.find_all("td", class_="border_top"):
         # Get the p element that has the affix name # Change from h5 to p element
         p = td.find("p")
         # If the p element exists, append its text to the affix list
@@ -63,8 +63,8 @@ def get_current_week():
     soup = BeautifulSoup(html, "html.parser")
     # Find the table element that has the affixes overview table
     table = soup.find("table", class_="affixes_overview_table")
-    # Find the last table row element that has the current week data # Change from -1 to -2 to get the last row that is not timewalking
-    week = table.find_all("tr", class_="table_row")[-2]
+    # Find the last table row element that has the current week data using the class attribute of the table row element # Change from -1 to current_week to find the current week row
+    week = table.find("tr", class_="current_week")
     # Get the start date and affixes for the current week using the helper functions
     start_date = get_start_date(week)
     affixes = get_affixes(week)
@@ -80,19 +80,17 @@ def get_upcoming_weeks():
     soup = BeautifulSoup(html, "html.parser")
     # Find the table element that has the affixes overview table
     table = soup.find("table", class_="affixes_overview_table")
-    # Find all the table row elements that have the upcoming week data
-    weeks = table.find_all("tr", class_="table_row")
-    # Initialize an empty list to store the upcoming weeks data
-    upcoming_weeks = []
-    # Loop through each week element
-    for week in weeks:
-        # Get the start date and affixes for each week using the helper functions
-        start_date = get_start_date(week)
-        affixes = get_affixes(week)
-        # Append a tuple of start date and affixes to the upcoming weeks list
-        upcoming_weeks.append((start_date, affixes))
-    # Return the upcoming weeks list
-    return upcoming_weeks
+    # Find all the table row elements that have the upcoming week data except for timewalking weeks using a lambda function and a negative lookbehind assertion in a regular expression # Change from all rows to non-timewalking rows 
+    weeks = table.find_all(lambda tag: tag.name == "tr" and tag.has_attr("class") and not re.search("(?<!timewalking) ", " ".join(tag["class"])))
+    
+     upcoming_weeks = []
+    
+     for week in weeks:
+         start_date = get_start_date(week)
+         affixes = get_affixes(week)
+         upcoming_weeks.append((start_date, affixes))
+    
+     return upcoming_weeks
 
 # Define a function to format and print the current and upcoming weeks data in an embed message
 def print_affixes():
@@ -110,7 +108,7 @@ def print_affixes():
     
      output += f"- Affixes: {', '.join(current_week[1])}\n\n"
 
-     output += f"- Source: [keystone.guru]\n\n" # Change to hyperlink format
+     output += f"- Source: [keystone.guru]\n\n" # Use hyperlink format
     
      output += "**Upcoming Weeks**\n\n"
     
@@ -118,6 +116,6 @@ def print_affixes():
          output += f"- Start date: {week[0]}\n"
          output += f"- Affixes: {', '.join(week[1])}\n\n"
     
-     output += f"Source: [keystone.guru]" # Change to hyperlink format
+     output += f"Source: [keystone.guru]" # Use hyperlink format
      
      return output
