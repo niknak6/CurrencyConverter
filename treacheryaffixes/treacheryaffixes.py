@@ -36,13 +36,11 @@ def get_affixes(week):
     affixes = []
     # Loop through the table cells that contain the affix icons and names
     for td in week.find_all("td")[1:]:
-        # Get the div element that has the affix name
-        div = td.find("div", class_="affix_row")
-        # Get the span element that has the affix name
-        span = div.find("span", class_="d-lg-block")
-        # If the span element exists, append its text to the affix list
-        if span:
-            affixes.append(span.text.strip())
+        # Get the h5 element that has the affix name
+        h5 = td.find("h5")
+        # If the h5 element exists, append its text to the affix list
+        if h5:
+            affixes.append(h5.text.strip())
     # Return the affix list
     return affixes
 
