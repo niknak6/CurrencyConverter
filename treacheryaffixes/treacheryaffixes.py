@@ -68,10 +68,16 @@ class TreacheryAffixes(commands.Cog):
         except IndexError:
             current_week = None # Assign None to current_week if the list is empty
 
+        # Check if the current_week variable is not None before accessing its keys
+        try: 
+            description=f"The current week started on: {current_week['start_date']}" # Add a try-except block to handle TypeError
+        except TypeError:
+            description="No current week data available" # Assign a default message to description if current_week is None
+
         # Create an embed for the current week affixes
         current_week_embed = discord.Embed(
             title="Current Week Affixes",
-            description=f"The current week started on: {current_week['start_date']}",
+            description=description,
             color=discord.Color.blue()
         )
         
