@@ -184,6 +184,12 @@ class TreacheryAffixes(commands.Cog):
 
         # Loop through the HTML content and the results list and split them into chunks
         for data in [html_str, results_str]:
+            # Split the data into a list of lines
+            lines = data.splitlines()
+
+            # Join the lines with newline characters
+            data = "\n".join(lines)
+
             # Get the length of the data
             data_len = len(data)
 
