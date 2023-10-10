@@ -63,8 +63,8 @@ def get_current_week():
     soup = BeautifulSoup(html, "html.parser")
     # Find the table element that has the affixes overview table
     table = soup.find("table", class_="affixes_overview_table")
-    # Find the last table row element that has the current week data
-    week = table.find_all("tr", class_="table_row")[-1]
+    # Find the last table row element that has the current week data # Change from -1 to -2 to get the last row that is not timewalking
+    week = table.find_all("tr", class_="table_row")[-2]
     # Get the start date and affixes for the current week using the helper functions
     start_date = get_start_date(week)
     affixes = get_affixes(week)
@@ -110,7 +110,7 @@ def print_affixes():
     
      output += f"- Affixes: {', '.join(current_week[1])}\n\n"
 
-     output += f"- Source: [keystone.guru]\n\n"
+     output += f"- Source: [keystone.guru]\n\n" # Change to hyperlink format
     
      output += "**Upcoming Weeks**\n\n"
     
@@ -118,6 +118,6 @@ def print_affixes():
          output += f"- Start date: {week[0]}\n"
          output += f"- Affixes: {', '.join(week[1])}\n\n"
     
-     output += f"Source: [keystone.guru]"
+     output += f"Source: [keystone.guru]" # Change to hyperlink format
      
      return output
