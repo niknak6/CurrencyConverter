@@ -56,14 +56,14 @@ def format_embed(data, title, upcoming_weeks=8):
             
                 date_str = date_obj.strftime("%m/%d/%y")
             
-                today = datetime.today()
+                today = datetime.utcnow()
                 
-                # Adjust the start of the week to Tuesday at 15:00 UTC-7 (Pacific Time)
-                # Subtract one week from the current date if it is Tuesday before 15:00 UTC-7
-                # Change this line to account for the website's update delay
-                # Old line: start = today - timedelta(days=(today.weekday() - 2) % 7)
-                # New line: start = today - timedelta(days=(today.weekday() - 2) % 7) - timedelta(weeks=1 if today.weekday() == 1 and today.hour < 15 else 0)
-                start = today - timedelta(days=(today.weekday() - 2) % 7) - timedelta(weeks=1 if today.weekday() == 1 and today.hour < 15 else 0)
+                # Assume that a day runs from midnight to midnight Eastern Time, and weeks start on Tuesdays
+                # Add one week to the current date if it is Monday after 00:00 ET
+                # Change this line to account for this assumption
+                # Old line: start = today - timedelta(days=(today.weekday() - 2) % 7) - timedelta(weeks=1 if today.weekday() == 1 and today.hour < 15 else 0)
+                # New line: start = today - timedelta(days=(today.weekday() - 2) % 7) + timedelta(weeks=1 if today.weekday() == 0 and today.hour >= 0 else 0)
+                start = today - timedelta(days=(today.weekday() - 2) % 7) + timedelta(weeks=1 if today.weekday() == 0 and today.hour >= 0 else 0)
                 
                 if today.weekday() < 2:
                     start -= timedelta(days=7)
