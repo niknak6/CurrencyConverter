@@ -23,8 +23,15 @@ class TreacheryAffixes(commands.Cog):
         # Initialize an empty list to store the results
         results = []
         
+        # Check if the table tag exists before using find_all on it
+        try:
+            table = soup.find("table", class_="table-affixes")
+            rows = table.find_all("tr")[1:]
+        except AttributeError:
+            rows = [] # Assign an empty list to rows if the table tag is not found
+        
         # Loop through the table rows, except the header row
-        for row in table.find_all("tr")[1:]:
+        for row in rows:
             # Initialize an empty dictionary to store the data for this week
             week = {}
             
