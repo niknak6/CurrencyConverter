@@ -1,7 +1,7 @@
-import discord
 import requests
 from bs4 import BeautifulSoup
 from redbot.core import commands
+import discord # Import the discord module
 
 class TreacheryAffixes(commands.Cog):
     """A cog that shows the current affixes for Treachery."""
@@ -18,7 +18,7 @@ class TreacheryAffixes(commands.Cog):
         soup = BeautifulSoup(html, "html.parser")
         
         # Find the table that contains the affixes
-        table = soup.find("table", class_="affixes_overview_table")
+        table = soup.find("table", class_="table-affixes") # Change the class name to match the website
         
         # Initialize an empty list to store the results
         results = []
@@ -29,23 +29,19 @@ class TreacheryAffixes(commands.Cog):
             week = {}
             
             # Get the start date from the first column
-            start_date = row.find("td", class_="first_column").text.strip()
+            start_date = row.find("td", class_="affixes-start-date").text.strip()
             week["start_date"] = start_date
             
-            # Get the affixes from the second, third, and fourth columns
+            # Get the affixes from the second column
             affixes = []
-            for column in row.find_all("td")[1:4]:
+            for affix in row.find("td", class_="affixes-list").find_all("div", class_="affix"):
                 # Get the affix name from the tooltip attribute
-                # Check if the div tag exists before accessing its attribute
-                try:
-                    affix_name = column.find("div", class_="affix_icon")["data-original-title"]
-                except TypeError:
-                    affix_name = "Unknown"
+                affix_name = affix["data-original-title"]
                 affixes.append(affix_name)
             week["affixes"] = affixes
             
-            # Get the seasonal affix from the fifth column, if any
-            seasonal_affix = row.find("td", class_="last_column").text.strip()
+            # Get the seasonal affix from the third column, if any
+            seasonal_affix = row.find("td", class_="affixes-seasonal").text.strip()
             if seasonal_affix:
                 week["seasonal_affix"] = seasonal_affix
             
@@ -78,13 +74,13 @@ class TreacheryAffixes(commands.Cog):
         if "seasonal_affix" in current_week:
             current_week_embed.add_field(name="Seasonal", value=current_week["seasonal_affix"], inline=True)
 
-        # Send the embed to the channel
-        await ctx.send(embed=current_week_embed)
+        # Create a list of embeds
+        embed_list = [current_week_embed] # Add the current week embed to the list
 
         # Get the upcoming weeks affixes from https://keystone.guru/affixes?offset=1
         upcoming_weeks = self.get_affixes("https://keystone.guru/affixes?offset=1")
 
-        # Create an embed for each upcoming week affixes
+        # Loop through the upcoming weeks and create an embed for each one
         for i, week in enumerate(upcoming_weeks):
             upcoming_week_embed = discord.Embed(
                 title=f"Week {i+1} Affixes",
@@ -101,5 +97,8 @@ class TreacheryAffixes(commands.Cog):
             if "seasonal_affix" in week:
                 upcoming_week_embed.add_field(name="Seasonal", value=week["seasonal_affix"], inline=True)
 
-            # Send the embed to the channel
-            await ctx.send(embed=upcoming_week_embed)
+            # Add the upcoming week embed to the list
+            embed_list.append(upcoming_week_embed)
+
+        # Send the list of embeds in one message
+        await ctx.send(embeds=embed_list) # Use the embeds parameter instead of the embed parameter
