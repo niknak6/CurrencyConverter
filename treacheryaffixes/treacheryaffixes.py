@@ -18,6 +18,16 @@ class TreacheryAffixes(commands.Cog):
         # Send the embed message to the channel
         await ctx.send(embed=embed)
 
+        # Define a command called affixdiag
+        @commands.command()
+        async def affixdiag(self, ctx):
+        # Call the print_affixes function and get the output as a string
+        output = print_affixes()
+        # Print the output to the terminal
+        print(output)
+        # Send a message to the channel saying that the output is printed
+        await ctx.send("The output from the print_affixes function is printed to the terminal. Please check it and see if there is any error or missing data.")
+
 # Define a function to get the affixes for a given week
 def get_affixes(week):
     # Initialize an empty list to store the affix names
