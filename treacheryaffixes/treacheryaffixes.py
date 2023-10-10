@@ -172,5 +172,36 @@ class TreacheryAffixes(commands.Cog):
             # Append the week dictionary to the results list
             results.append(week)
 
-        # Send a message with the HTML content and the results list
-        await ctx.send(f"HTML content:\n```{html}```\nResults list:\n```{results}```")
+        # Define a variable for the maximum length
+        MAX_LENGTH = 4000
+
+        # Get the HTML content and the results list as strings
+        html_str = str(html)
+        results_str = str(results)
+
+        # Initialize an empty list to store the message chunks
+        chunks = []
+
+        # Loop through the HTML content and the results list and split them into chunks
+        for data in [html_str, results_str]:
+            # Get the length of the data
+            data_len = len(data)
+
+            # Calculate how many chunks are needed
+            num_chunks = data_len // MAX_LENGTH + 1
+
+            # Loop through the number of chunks and append them to the list
+            for i in range(num_chunks):
+                # Get the start and end indices of the chunk
+                start = i * MAX_LENGTH
+                end = (i + 1) * MAX_LENGTH
+
+                # Get the chunk from the data
+                chunk = data[start:end]
+
+                # Append the chunk to the list
+                chunks.append(chunk)
+
+        # Loop through the chunks and send them as messages
+        for chunk in chunks:
+            await ctx.send(chunk)
