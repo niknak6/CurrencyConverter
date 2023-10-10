@@ -59,10 +59,7 @@ def format_embed(data, title, upcoming_weeks=8):
                 today = datetime.today()
                 
                 # Adjust the start of the week to Tuesday
-                # Change this line to account for the website's update schedule
-                # Old line: start = today - timedelta(days=(today.weekday() - 2) % 7)
-                # New line: start = today - timedelta(days=(today.weekday() - 2) % 7 - 1)
-                start = today - timedelta(days=(today.weekday() - 2) % 7 - 1)
+                start = today - timedelta(days=(today.weekday() - 2) % 7)
                 
                 if today.weekday() < 2:
                     start -= timedelta(days=7)
@@ -70,10 +67,10 @@ def format_embed(data, title, upcoming_weeks=8):
                 end = start + timedelta(days=6)
             
                 # Check if the date falls within a range of upcoming_weeks weeks starting from the current week
-                # Change this line to include the current week data
-                # Old line: if start <= date_obj < start + timedelta(weeks=upcoming_weeks):
-                # New line: if start + timedelta(weeks=1) <= date_obj < start + timedelta(weeks=upcoming_weeks + 1):
-                if start + timedelta(weeks=1) <= date_obj < start + timedelta(weeks=upcoming_weeks + 1):
+                # Change this line to fix the error
+                # Old line: if start <= date_obj <= end + timedelta(weeks=upcoming_weeks):
+                # New line: if start <= date_obj < start + timedelta(weeks=upcoming_weeks):
+                if start <= date_obj < start + timedelta(weeks=upcoming_weeks):
                     bs = "\\"
                     embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
             
@@ -99,10 +96,7 @@ class TreacheryAffixes(commands.Cog):
             current_week_data = scrape_data(urls[0])
             upcoming_weeks_data = scrape_data(urls[1])
 
-            # Change this line to only include one row of data for the current week
-            # Old line: current_week_embed = format_embed(current_week_data, "Current Week", upcoming_weeks=1)
-            # New line: current_week_embed = format_embed(current_week_data, "Current Week", upcoming_weeks=0)
-            current_week_embed = format_embed(current_week_data, "Current Week", upcoming_weeks=0)
+            current_week_embed = format_embed(current_week_data, "Current Week", upcoming_weeks=1)
             upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming Weeks")
 
             if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
