@@ -173,7 +173,7 @@ class TreacheryAffixes(commands.Cog):
             results.append(week)
 
         # Define a variable for the maximum length
-        MAX_LENGTH = 4000
+        MAX_LENGTH = 1999 # Change the value to 199
 
         # Get the HTML content and the results list as strings
         html_str = str(html)
@@ -182,7 +182,7 @@ class TreacheryAffixes(commands.Cog):
         # Initialize an empty list to store the message chunks
         chunks = []
 
-        # Loop through the HTML content and the results list and split them  chunks
+        # Loop through the HTML content and the results list and split them into chunks
         for data in [html_str, results_str]:
             # Split the data into a list of lines
             lines = data.splitlines()
