@@ -1,112 +1,100 @@
-# Import the necessary modules
-import discord
-from redbot.core import commands
-from redbot.core.utils.chat_formatting import bold
-from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
-import re
-
-class ScrapingError(Exception):
-    pass
-
-# Define a function to scrape the data from the website
-def scrape_data(url):
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an exception if the response status code is not 200
-        soup = BeautifulSoup(response.content, "html.parser")
-        table = soup.find("table", class_="affixes_overview_table")
-        if table:
-            affixes_data = []
-            for row in table.find("tbody").find_all("tr"):
-                row_data = {}
-                start_date = row.find("td", class_="first_column").get_text().strip()
-                row_data["start_date"] = start_date
-                affix_names = []
-                for affix in row.find_all("td")[1:]:
-                    affix_name = affix.get_text().strip().rstrip("| ")
-                    affix_names.append(affix_name)
-                affix_names = affix_names[:3]
-                row_data["affix_names"] = affix_names
-                # Change this line to reverse the order of the rows in the table
-                # Old line: affixes_data.append(row_data)
-                # New line: affixes_data.insert(0, row_data)
-                affixes_data.insert(0, row_data)
-            return affixes_data
-        else:
-            raise ScrapingError("Table element not found")
-    except requests.exceptions.RequestException as e:
-        raise ScrapingError(f"Error fetching data from {url}: {e}")
-
-# Define a function to format the data as an embed message
-def format_embed(data, title, upcoming_weeks=8):
-    if isinstance(data, str):
-        return data
-
-    embed_description = ""
-    
-    for row in data:
-        date = row["start_date"]
-        level2, level7, level14 = row["affix_names"]
-        
-        # Check if the date string contains digits
-        if any(char.isdigit() for char in date):
-            date_pattern = re.compile(r"\d{4}/\w{3}/\d{2}.*")
-            
-            if date_pattern.match(date):
-                date_obj = datetime.strptime(date[:15], "%Y/%b/%d\n\n\n")
-            
-                date_str = date_obj.strftime("%m/%d/%y")
-            
-                today = datetime.utcnow()
-                
-                # Assume that a day runs from midnight to midnight Eastern Time, and weeks start on Tuesdays
-                # Add one week to the current date if it is Monday after 00:00 ET
-                start = today - timedelta(days=(today.weekday() - 2) % 7) + timedelta(weeks=1 if today.weekday() == 0 and today.hour >= 0 else 0)
-                
-                if today.weekday() < 2:
-                    start -= timedelta(days=7)
-                
-                end = start + timedelta(days=6)
-            
-                # Check if the date falls within a range of upcoming_weeks weeks starting from the current week
-                if start <= date_obj < start + timedelta(weeks=upcoming_weeks):
-                    bs = "\\"
-                    embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
-            
-            else:
-                continue
-        
-        else:
-            continue
-    
-    embed_message = discord.Embed(title=title, description=embed_description) 
-    return embed_message 
+from redbot.core import commands
 
 class TreacheryAffixes(commands.Cog):
-    
+    """A cog that shows the current affixes for Treachery."""
+
     def __init__(self, bot):
         self.bot = bot
-    
+
+    def get_affixes(self, url):
+        # Get the HTML content from the URL
+        response = requests.get(url)
+        html = response.text
+        
+        # Parse the HTML using BeautifulSoup
+        soup = BeautifulSoup(html, "html.parser")
+        
+        # Find the table that contains the affixes
+        table = soup.find("table", class_="affixes_overview_table")
+        
+        # Initialize an empty list to store the results
+        results = []
+        
+        # Loop through the table rows, except the header row
+        for row in table.find_all("tr")[1:]:
+            # Initialize an empty dictionary to store the data for this week
+            week = {}
+            
+            # Get the start date from the first column
+            start_date = row.find("td", class_="first_column").text.strip()
+            week["start_date"] = start_date
+            
+            # Get the affixes from the second, third, and fourth columns
+            affixes = []
+            for column in row.find_all("td")[1:4]:
+                # Get the affix name from the tooltip attribute
+                affix_name = column.find("div", class_="affix_icon")["data-original-title"]
+                affixes.append(affix_name)
+            week["affixes"] = affixes
+            
+            # Get the seasonal affix from the fifth column, if any
+            seasonal_affix = row.find("td", class_="last_column").text.strip()
+            if seasonal_affix:
+                week["seasonal_affix"] = seasonal_affix
+            
+            # Append the week dictionary to the results list
+            results.append(week)
+        
+        # Return the results list
+        return results
+
     @commands.command()
     async def affixes(self, ctx):
-        urls = ["https://keystone.guru/affixes", "https://keystone.guru/affixes?offset=1"]
+        """Shows the Mythic+ Schedule for Treachery."""
 
-        try:
-            current_week_data = scrape_data(urls[0])
-            upcoming_weeks_data = scrape_data(urls[1])
+        # Get the current week affixes from https://keystone.guru/affixes
+        current_week = self.get_affixes("https://keystone.guru/affixes")[0]
 
-            current_week_embed = format_embed(current_week_data, "Current Week", upcoming_weeks=1)
-            upcoming_weeks_embed = format_embed(upcoming_weeks_data, "Upcoming Weeks")
+        # Create an embed for the current week affixes
+        current_week_embed = discord.Embed(
+            title="Current Week Affixes",
+            description=f"The current week started on: {current_week['start_date']}",
+            color=discord.Color.blue()
+        )
+        
+        # Add fields for each affix level and name
+        current_week_embed.add_field(name="+2", value=current_week["affixes"][0], inline=True)
+        current_week_embed.add_field(name="+7", value=current_week["affixes"][1], inline=True)
+        current_week_embed.add_field(name="+14", value=current_week["affixes"][2], inline=True)
 
-            if not isinstance(current_week_embed, str) and not isinstance(upcoming_weeks_embed, str):
-                embed_message = discord.Embed(title="Mythic+ Schedule")
-                embed_message.add_field(name="Current Week", value=current_week_embed.description)
-                embed_message.add_field(name="Upcoming Weeks", value=upcoming_weeks_embed.description)
+        # Add a field for the seasonal affix, if any
+        if "seasonal_affix" in current_week:
+            current_week_embed.add_field(name="Seasonal", value=current_week["seasonal_affix"], inline=True)
 
-                await ctx.send(embed=embed_message)
-            else:
-                await ctx.send(f"An error occurred while formatting the data.")
-        except ScrapingError as e:
-            await ctx.send(f"An error occurred: {e}")
+        # Send the embed to the channel
+        await ctx.send(embed=current_week_embed)
+
+        # Get the upcoming weeks affixes from https://keystone.guru/affixes?offset=1
+        upcoming_weeks = self.get_affixes("https://keystone.guru/affixes?offset=1")
+
+        # Create an embed for each upcoming week affixes
+        for i, week in enumerate(upcoming_weeks):
+            upcoming_week_embed = discord.Embed(
+                title=f"Week {i+1} Affixes",
+                description=f"The week {i+1} starts on: {week['start_date']}",
+                color=discord.Color.green()
+            )
+
+            # Add fields for each affix level and name
+            upcoming_week_embed.add_field(name="+2", value=week["affixes"][0], inline=True)
+            upcoming_week_embed.add_field(name="+7", value=week["affixes"][1], inline=True)
+            upcoming_week_embed.add_field(name="+14", value=week["affixes"][2], inline=True)
+
+            # Add a field for the seasonal affix, if any
+            if "seasonal_affix" in week:
+                upcoming_week_embed.add_field(name="Seasonal", value=week["seasonal_affix"], inline=True)
+
+            # Send the embed to the channel
+            await ctx.send(embed=upcoming_week_embed)
