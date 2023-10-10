@@ -35,7 +35,11 @@ class TreacheryAffixes(commands.Cog):
             affixes = []
             for column in row.find_all("td")[1:4]:
                 # Get the affix name from the tooltip attribute
-                affix_name = column.find("div", class_="affix_icon")["data-original-title"]
+                # Check if the div tag exists before accessing its attribute
+                try:
+                    affix_name = column.find("div", class_="affix_icon")["data-original-title"]
+                except TypeError:
+                    affix_name = "Unknown"
                 affixes.append(affix_name)
             week["affixes"] = affixes
             
