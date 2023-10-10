@@ -18,15 +18,17 @@ class TreacheryAffixes(commands.Cog):
         # Send the embed message to the channel
         await ctx.send(embed=embed)
 
-        # Define a command called affixdiag
-        @commands.command()
-        async def affixdiag(self, ctx):
+    # Define a command called affixdiag
+    @commands.command()
+    async def affixdiag(self, ctx):
         # Call the print_affixes function and get the output as a string
         output = print_affixes()
         # Print the output to the terminal
         print(output)
-        # Send a message to the channel saying that the output is printed
-        await ctx.send("The output from the print_affixes function is printed to the terminal. Please check it and see if there is any error or missing data.")
+        # Create an embed object with the output as the description
+        embed = discord.Embed(description=output)
+        # Send the embed message to the channel
+        await ctx.send(embed=embed)
 
 # Define a function to get the affixes for a given week
 def get_affixes(week):
@@ -109,7 +111,7 @@ def print_affixes():
     
      output += f"- Affixes: {', '.join(current_week[1])}\n\n"
 
-     output += f"- Source: [keystone.guru](https://docs.discord.red/en/stable/framework_utils.html)\n\n"
+     output += f"- Source: [keystone.guru]\n\n"
     
      output += "**Upcoming Weeks**\n\n"
     
@@ -117,6 +119,6 @@ def print_affixes():
          output += f"- Start date: {week[0]}\n"
          output += f"- Affixes: {', '.join(week[1])}\n\n"
     
-     output += f"Source: [keystone.guru](https://docs.discord.red/en/stable/framework_utils.html)"
+     output += f"Source: [keystone.guru]"
      
      return output
