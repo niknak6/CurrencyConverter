@@ -68,7 +68,9 @@ def format_embed(data, title, upcoming_weeks=8):
             
                 # Check if the date falls within a range of upcoming_weeks weeks starting from the current week
                 # Change this line to fix the bug
-                if start <= date_obj <= end + timedelta(weeks=upcoming_weeks):
+                # Old line: if start <= date_obj <= end + timedelta(weeks=upcoming_weeks):
+                # New line: if start <= date_obj < start + timedelta(weeks=upcoming_weeks):
+                if start <= date_obj < start + timedelta(weeks=upcoming_weeks):
                     bs = "\\"
                     embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
             
