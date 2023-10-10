@@ -1,7 +1,7 @@
-import discord
 import requests
 from bs4 import BeautifulSoup
 from redbot.core import commands
+import discord # Import the discord module
 
 # Define a class for the cog
 class TreacheryAffixes(commands.Cog):
@@ -37,11 +37,11 @@ def get_affixes(week):
     affixes = []
     # Loop through the table cells that contain the affix icons and names
     for td in week.find_all("td")[1:]:
-        # Get the h5 element that has the affix name
-        h5 = td.find("h5")
-        # If the h5 element exists, append its text to the affix list
-        if h5:
-            affixes.append(h5.text.strip())
+        # Get the p element that has the affix name # Change from h5 to p element
+        p = td.find("p")
+        # If the p element exists, append its text to the affix list
+        if p:
+            affixes.append(p.text.strip())
     # Return the affix list
     return affixes
 
