@@ -62,8 +62,11 @@ class TreacheryAffixes(commands.Cog):
     async def affixes(self, ctx):
         """Shows the Mythic+ Schedule for Treachery."""
 
-        # Get the current week affixes from https://keystone.guru/affixes
-        current_week = self.get_affixes("https://keystone.guru/affixes")[0]
+        # Check if the list is empty before accessing its elements
+        try:
+            current_week = self.get_affixes("https://keystone.guru/affixes")[0] # Add a try-except block to handle IndexError
+        except IndexError:
+            current_week = None # Assign None to current_week if the list is empty
 
         # Create an embed for the current week affixes
         current_week_embed = discord.Embed(
