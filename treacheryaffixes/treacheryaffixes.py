@@ -59,10 +59,10 @@ def format_embed(data, title, upcoming_weeks=8):
                 today = datetime.today()
                 
                 # Adjust the start of the week to Tuesday
-                # Change this line to account for the website's update schedule
-                # Old line: start = today - timedelta(days=(today.weekday() - 2) % 7 - 1)
-                # New line: start = today - timedelta(days=(today.weekday() - 2) % 7)
-                start = today - timedelta(days=(today.weekday() - 2) % 7)
+                # Change this line to account for the website's update delay
+                # Old line: start = today - timedelta(days=(today.weekday() - 2) % 7)
+                # New line: start = today - timedelta(days=(today.weekday() - 2) % 7) - timedelta(weeks=1 if today.weekday() == 1 and today.hour < 15 else 0)
+                start = today - timedelta(days=(today.weekday() - 2) % 7) - timedelta(weeks=1 if today.weekday() == 1 and today.hour < 15 else 0)
                 
                 if today.weekday() < 2:
                     start -= timedelta(days=7)
@@ -70,9 +70,6 @@ def format_embed(data, title, upcoming_weeks=8):
                 end = start + timedelta(days=6)
             
                 # Check if the date falls within a range of upcoming_weeks weeks starting from the current week
-                # Change this line to include the current week data
-                # Old line: if start - timedelta(weeks=1) <= date_obj < start + timedelta(weeks=upcoming_weeks):
-                # New line: if start <= date_obj < start + timedelta(weeks=upcoming_weeks):
                 if start <= date_obj < start + timedelta(weeks=upcoming_weeks):
                     bs = "\\"
                     embed_description += f"**__{date_str}__**\n{level2} | {level7} | {level14.rstrip(bs)}\n"
