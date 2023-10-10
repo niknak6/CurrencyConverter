@@ -58,7 +58,8 @@ def format_embed(data, title, upcoming_weeks=8):
             
                 today = datetime.today()
                 
-                # Adjust the start of the week to Tuesday
+                # Adjust the start of the week to Tuesday at 15:00 UTC-7 (Pacific Time)
+                # Subtract one week from the current date if it is Tuesday before 15:00 UTC-7
                 # Change this line to account for the website's update delay
                 # Old line: start = today - timedelta(days=(today.weekday() - 2) % 7)
                 # New line: start = today - timedelta(days=(today.weekday() - 2) % 7) - timedelta(weeks=1 if today.weekday() == 1 and today.hour < 15 else 0)
