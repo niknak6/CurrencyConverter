@@ -122,3 +122,55 @@ class TreacheryAffixes(commands.Cog):
 
         # Send the list of embeds in one message
         await ctx.send(embeds=embed_list) # Use the embeds parameter instead of the embed parameter
+
+    @commands.command()
+    async def affixesdiag(self, ctx):
+        """Shows the raw output from the website and what is being parsed."""
+
+        # Get the HTML content from https://keystone.guru/affixes
+        response = requests.get("https://keystone.guru/affixes")
+        html = response.text
+
+        # Parse the HTML using BeautifulSoup
+        soup = BeautifulSoup(html, "html.parser")
+
+        # Find the table that contains the affixes
+        table = soup.find("table", class_="table-affixes") # Change the class name to match the website
+
+        # Initialize an empty list to store the results
+        results = []
+
+        # Check if the table tag exists before using find_all on it
+        try:
+            table = soup.find("table", class_="table-affixes")
+            rows = table.find_all("tr")[1:]
+        except AttributeError:
+            rows = [] # Assign an empty list to rows if the table tag is not found
+
+        # Loop through the table rows, except the header row
+        for row in rows:
+            # Initialize an empty dictionary to store the data for this week
+            week = {}
+
+            # Get the start date from the first column
+            start_date = row.find("td", class_="affixes-start-date").text.strip()
+            week["start_date"] = start_date
+
+            # Get the affixes from the second column
+            affixes = []
+            for affix in row.find("td", class_="affixes-list").find_all("div", class_="affix"):
+                # Get the affix name from the tooltip attribute
+                affix_name = affix["data-original-title"]
+                affixes.append(affix_name)
+            week["affixes"] = affixes
+
+            # Get the seasonal affix from the third column, if any
+            seasonal_affix = row.find("td", class_="affixes-seasonal").text.strip()
+            if seasonal_affix:
+                week["seasonal_affix"] = seasonal_affix
+
+            # Append the week dictionary to the results list
+            results.append(week)
+
+        # Send a message with the HTML content and the results list
+        await ctx.send(f"HTML content:\n```{html}```\nResults list:\n```{results}```")
