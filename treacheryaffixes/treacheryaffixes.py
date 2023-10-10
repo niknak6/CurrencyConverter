@@ -81,14 +81,18 @@ class TreacheryAffixes(commands.Cog):
             color=discord.Color.blue()
         )
         
-        # Add fields for each affix level and name
-        current_week_embed.add_field(name="+2", value=current_week["affixes"][0], inline=True)
-        current_week_embed.add_field(name="+7", value=current_week["affixes"][1], inline=True)
-        current_week_embed.add_field(name="+14", value=current_week["affixes"][2], inline=True)
+        # Add fields for each affix level and name, checking if current_week is not None
+        if current_week:
+            current_week_embed.add_field(name="+2", value=current_week["affixes"][0], inline=True)
+            current_week_embed.add_field(name="+7", value=current_week["affixes"][1], inline=True)
+            current_week_embed.add_field(name="+14", value=current_week["affixes"][2], inline=True)
 
-        # Add a field for the seasonal affix, if any
-        if "seasonal_affix" in current_week:
-            current_week_embed.add_field(name="Seasonal", value=current_week["seasonal_affix"], inline=True)
+            # Add a field for the seasonal affix, if any
+            if "seasonal_affix" in current_week:
+                current_week_embed.add_field(name="Seasonal", value=current_week["seasonal_affix"], inline=True)
+
+        else:
+            current_week_embed.add_field(name="No data available", value="Please try again later.", inline=False)
 
         # Create a list of embeds
         embed_list = [current_week_embed] # Add the current week embed to the list
