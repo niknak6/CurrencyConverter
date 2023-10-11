@@ -34,11 +34,6 @@ class TreacheryAffixes(commands.Cog):
         return all_affixes
 
     @commands.command()
-    async def affixes(self, ctx):
-        affixes = self.fetch_and_parse_affixes(0)
-        await ctx.send(affixes)
-
-    @commands.command()
-    async def future_affixes(self, ctx, offset: int):
+    async def affixes(self, ctx, offset: int = 0):
         affixes = self.fetch_and_parse_affixes(offset)
         await ctx.send(affixes)
