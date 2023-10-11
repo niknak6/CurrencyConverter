@@ -26,3 +26,27 @@ class TreacheryAffixes(commands.Cog):
 
         # Send a message with the affixes
         await ctx.send(f"Date: {date}\nAffixes: {', '.join(affixes)}")
+
+    @commands.command()
+    async def future_affixes(self, ctx, offset: int):
+        # Fetch the HTML from the website
+        response = requests.get(f'https://keystone.guru/affixes?offset={offset}')
+        response.raise_for_status()
+
+        # Parse the HTML
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Find all table rows
+        table_rows = soup.find_all('tr', {'class': ['table_row odd', 'table_row even']})
+
+        # Find the table row for the specified week
+        week_row = table_rows[offset]
+
+        # Find the date in the first column
+        date = week_row.find('td', {'class': 'first_column'}).get_text(strip=True)
+
+        # Find the affixes in the other columns
+        affixes = [td.get_text(strip=True) for td in week_row.find_all('td')[1:-1]]
+
+        # Send a message with the affixes
+        await ctx.send(f"Date: {date}\nAffixes: {', '.join(affixes)}")
