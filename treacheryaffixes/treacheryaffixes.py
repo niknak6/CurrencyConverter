@@ -16,7 +16,7 @@ class TreacheryAffixes(commands.Cog):
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # Find the table row for the current week
-        current_week_row = soup.find('tr', {'class': 'table_row even'})
+        current_week_row = soup.find('tr', {'class': ['table_row even', 'current_week']})
 
         # Find the date in the first column
         date = current_week_row.find('td', {'class': 'first_column'}).get_text(strip=True)
