@@ -20,7 +20,7 @@ class TreacheryAffixes(commands.Cog):
         current_url = "https://keystone.guru/affixes"
         current_response = requests.get(current_url)
         current_soup = BeautifulSoup(current_response.text, "html.parser")
-        current_row = current_soup.find("tr", class_="table_row even")
+        current_row = current_soup.find("tr", class_="table_row even current_week") # Changed this line to find the correct row
         current_date = current_row.find("span").text.strip()
         current_affixes = [div.text.strip() for div in current_row.find_all("div", class_="col d-lg-block d-none pl-1")]
 
