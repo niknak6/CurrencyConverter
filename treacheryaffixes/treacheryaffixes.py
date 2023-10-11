@@ -1,8 +1,7 @@
-# Import the required modules
-import discord
-from redbot.core import commands
+# Import the necessary libraries
 import requests
 from bs4 import BeautifulSoup
+from redbot.core import commands
 
 # Define the cog class
 class TreacheryAffixes(commands.Cog):
@@ -11,33 +10,41 @@ class TreacheryAffixes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # Define the command affixes
+    # Define the command
     @commands.command()
     async def affixes(self, ctx):
         """Shows the current and upcoming World of Warcraft M+ Affixes."""
 
-        # Get the current week affixes from keystone.guru
+        # Get the HTML data from keystone.guru
         current_url = "https://keystone.guru/affixes"
-        current_response = requests.get(current_url)
-        current_soup = BeautifulSoup(current_response.text, "html.parser")
-        current_row = current_soup.find("tr", class_="table_row even current_week") # Changed this line to find the correct row
-        current_date = current_row.find("span").text.strip()
-        current_affixes = [div.text.strip() for div in current_row.find_all("div", class_="col d-lg-block d-none pl-1")]
-
-        # Get the upcoming weeks affixes from keystone.guru
         upcoming_url = "https://keystone.guru/affixes?offset=1"
+        current_response = requests.get(current_url)
         upcoming_response = requests.get(upcoming_url)
+
+        # Parse the data using BeautifulSoup
+        current_soup = BeautifulSoup(current_response.text, "html.parser")
         upcoming_soup = BeautifulSoup(upcoming_response.text, "html.parser")
+
+        # Find the table rows that contain the affix information
+        current_row = current_soup.find("tr", class_="current_week")
         upcoming_rows = upcoming_soup.find_all("tr", class_="table_row")
-        upcoming_dates = [row.find("span").text.strip() for row in upcoming_rows]
-        upcoming_affixes = [[div.text.strip() for div in row.find_all("div", class_="col d-lg-block d-none pl-1")] for row in upcoming_rows]
 
-        # Create an embed to display the affixes
-        embed = discord.Embed(title="World of Warcraft M+ Affixes", color=discord.Color.blurple())
-        embed.add_field(name=f"Current week ({current_date})", value="\n".join(current_affixes), inline=False)
-        for i in range(len(upcoming_dates)):
-            embed.add_field(name=f"Upcoming week {i+1} ({upcoming_dates[i]})", value="\n".join(upcoming_affixes[i]), inline=False)
-        embed.set_footer(text=f"Data source: keystone.guru")
+        # Extract the relevant information from each row
+        current_date = current_row.find("span").text.strip()
+        current_affixes = [div.text.strip() for div in current_row.find_all("div", class_="col")]
+        upcoming_data = []
+        for row in upcoming_rows:
+            date = row.find("span").text.strip()
+            affixes = [div.text.strip() for div in row.find_all("div", class_="col")]
+            upcoming_data.append((date, affixes))
 
-        # Send the embed to the context channel
-        await ctx.send(embed=embed)
+        # Format the output using markdown elements
+        output = f"**Current week ({current_date}):**\n"
+        output += " | ".join(current_affixes) + "\n\n"
+        output += "**Upcoming weeks:**\n"
+        for date, affixes in upcoming_data:
+            output += f"**{date}:**\n"
+            output += " | ".join(affixes) + "\n\n"
+
+        # Send the output to the user
+        await ctx.send(output)
