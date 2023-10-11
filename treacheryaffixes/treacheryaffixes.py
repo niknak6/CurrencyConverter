@@ -49,32 +49,30 @@ def get_affixes(week):
 def get_start_date(week):
     # Get the div element that has the start date using the class attribute of the div element
     div = week.find("div", class_="affix_row")
-    # Get the span element that has the start date inside the div element
-    span = div.find("span")
-    # Return the span text as a string
-    return span.text.strip()
+    # Get the span element that has the start date inside
+
+the div element
+span = div.find("span")
+# Return the span text as a string
+return span.text.strip()
 
 # Define a function to get the current week from keystone.guru/affixes
 def get_current_week():
-    # This function gets the start date and affixes for
-    # the current week using get_start_date and get_affixes helper functions
     
     # Send a GET request to keystone.guru/affixes and get the response content as HTML using requests module
     response = requests.get("https://keystone.guru/affixes")
     html = response.content
-    # Parse
-
-the HTML using BeautifulSoup module
-soup = BeautifulSoup(html, "html.parser")
-# Find the table element that has the affixes overview table using the class attribute of the table element
-table = soup.find("table", class_="affixes_overview_table")
-# Find the last table row element that has the current week data using the class attribute of the table row element 
-week = table.find("tr", class_="current_week")
-# Get the start date and affixes for the current week using get_start_date and get_affixes helper functions
-start_date = get_start_date(week)
-affixes = get_affixes(week)
-# Return a tuple of start date and affixes
-return (start_date, affixes)
+    # Parse the HTML using BeautifulSoup module
+    soup = BeautifulSoup(html, "html.parser")
+    # Find the table element that has the affixes overview table using the class attribute of the table element
+    table = soup.find("table", class_="affixes_overview_table")
+    # Find the last table row element that has the current week data using the class attribute of the table row element 
+    week = table.find("tr", class_="current_week")
+    # Get the start date and affixes for the current week using get_start_date and get_affixes helper functions
+    start_date = get_start_date(week)
+    affixes = get_affixes(week)
+    # Return a tuple of start date and affixes
+    return (start_date, affixes)
 
 # Define a function to get the upcoming weeks from keystone.guru/affixes?offset=1
 def get_upcoming_weeks():
