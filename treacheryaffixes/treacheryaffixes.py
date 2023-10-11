@@ -25,8 +25,9 @@ class TreacheryAffixes(commands.Cog):
         current_soup = BeautifulSoup(current_response.text, "html.parser")
         upcoming_soup = BeautifulSoup(upcoming_response.text, "html.parser")
 
-        # Find the table rows that contain the affix information
-        current_row = current_soup.find("tr", class_="current_week")
+        # Find the table row that contain the affix information
+        # Change the class name to match the new HTML structure
+        current_row = current_soup.find("tr", class_="current_week border_top border_bottom")
         upcoming_rows = upcoming_soup.find_all("tr", class_="table_row")
 
         # Extract the relevant information from each row
