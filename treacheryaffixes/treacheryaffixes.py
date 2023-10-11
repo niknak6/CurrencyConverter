@@ -35,14 +35,19 @@ class TreacheryAffixes(commands.Cog):
         return all_affixes
 
     @commands.command()
-    async def affixes(self, ctx, offset: int = 0):
-        affixes = self.fetch_and_parse_affixes(offset)
+    async def affixes(self, ctx):
+        # Fetch and parse affixes for current week and future weeks
+        current_week_affixes = self.fetch_and_parse_affixes(0)[-1]
+        future_weeks_affixes = self.fetch_and_parse_affixes(1)
 
         # Create a new embed object
         embed = Embed(title="Mythic+ Affixes", colour=0x3498db)
 
-        for date, affix_list in affixes:
-            # Add a field to the embed for each week's affixes
+        # Add a field to the embed for current week's affixes
+        embed.add_field(name=current_week_affixes[0], value=', '.join(current_week_affixes[1]), inline=False)
+
+        for date, affix_list in future_weeks_affixes:
+            # Add a field to the embed for each future week's affixes
             embed.add_field(name=date, value=', '.join(affix_list), inline=False)
 
         await ctx.send(embed=embed)
