@@ -2,6 +2,7 @@ from redbot.core import commands
 import requests
 from bs4 import BeautifulSoup, SoupStrainer
 from discord import Embed
+import asyncio
 
 class TreacheryAffixes(commands.Cog):
     def __init__(self, bot):
@@ -47,6 +48,9 @@ class TreacheryAffixes(commands.Cog):
 
     @commands.command()
     async def affixes(self, ctx):
+        # Send a loading message
+        loading_message = await ctx.send("Loading Mythic+ Data...")
+
         # Fetch and parse affixes for current week and future weeks
         current_week_affixes = self.fetch_and_parse_affixes(0)[-1]
         future_weeks_affixes = self.fetch_and_parse_affixes(1)
@@ -60,4 +64,5 @@ class TreacheryAffixes(commands.Cog):
         # Add a field to the embed for upcoming weeks' affixes
         embed.add_field(name="Upcoming Weeks", value='\n'.join([f"{date}: {', '.join(affix_list)}" for date, affix_list in future_weeks_affixes]), inline=False)
 
-        await ctx.send(embed=embed)
+        # Edit the loading message with the actual data
+        await loading_message.edit(content='', embed=embed)
