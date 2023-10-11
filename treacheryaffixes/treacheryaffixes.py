@@ -1,51 +1,28 @@
-# Import the necessary libraries
+from redbot.core import commands
 import requests
 from bs4 import BeautifulSoup
-from redbot.core import commands
 
-# Define the cog class
 class TreacheryAffixes(commands.Cog):
-    """A cog that shows the current and upcoming World of Warcraft M+ Affixes."""
-
     def __init__(self, bot):
         self.bot = bot
 
-    # Define the command
     @commands.command()
     async def affixes(self, ctx):
-        """Shows the current and upcoming World of Warcraft M+ Affixes."""
+        # Fetch the HTML from the website
+        response = requests.get('https://keystone.guru/affixes')
+        response.raise_for_status()
 
-        # Get the HTML data from keystone.guru
-        current_url = "https://keystone.guru/affixes"
-        upcoming_url = "https://keystone.guru/affixes?offset=1"
-        current_response = requests.get(current_url)
-        upcoming_response = requests.get(upcoming_url)
+        # Parse the HTML
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Parse the data using BeautifulSoup
-        current_soup = BeautifulSoup(current_response.text, "html.parser")
-        upcoming_soup = BeautifulSoup(upcoming_response.text, "html.parser")
+        # Find the table row for the current week
+        current_week_row = soup.find('tr', {'class': 'table_row even'})
 
-        # Find the table row that contain the affix information
-        # Use the data-current-week attribute instead of the class name
-        current_row = current_soup.find("tr", attrs={"data-current-week": "1"})
-        upcoming_rows = upcoming_soup.find_all("tr", class_="table_row")
+        # Find the date in the first column
+        date = current_week_row.find('td', {'class': 'first_column'}).get_text(strip=True)
 
-        # Extract the relevant information from each row
-        current_date = current_row.find("span").text.strip()
-        current_affixes = [div.text.strip() for div in current_row.find_all("div", class_="col")]
-        upcoming_data = []
-        for row in upcoming_rows:
-            date = row.find("span").text.strip()
-            affixes = [div.text.strip() for div in row.find_all("div", class_="col")]
-            upcoming_data.append((date, affixes))
+        # Find the affixes in the other columns
+        affixes = [td.get_text(strip=True) for td in current_week_row.find_all('td')[1:-1]]
 
-        # Format the output using markdown elements
-        output = f"**Current week ({current_date}):**\n"
-        output += " | ".join(current_affixes) + "\n\n"
-        output += "**Upcoming weeks:**\n"
-        for date, affixes in upcoming_data:
-            output += f"**{date}:**\n"
-            output += " | ".join(affixes) + "\n\n"
-
-        # Send the output to the user
-        await ctx.send(output)
+        # Send a message with the affixes
+        await ctx.send(f"Date: {date}\nAffixes: {', '.join(affixes)}")
