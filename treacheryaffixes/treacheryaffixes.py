@@ -27,7 +27,7 @@ class TreacheryAffixes(commands.Cog):
 
         # Find the table row that contain the affix information
         # Change the class name to match the new HTML structure
-        current_row = current_soup.find("tr", class_="current_week border_top border_bottom")
+        current_row = current_soup.find("tr", class_="current_week")
         upcoming_rows = upcoming_soup.find_all("tr", class_="table_row")
 
         # Extract the relevant information from each row
