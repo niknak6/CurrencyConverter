@@ -47,11 +47,11 @@ def get_affixes(week):
 
 # Define a function to get the start date for a given week
 def get_start_date(week):
-    # Get the div element that has the start date using the class attribute of the div element
-    div = week.find("div", class_="affix_row")
-    # Get the span element that has the start date inside
+    # Get the div element that has
 
-the div element
+the start date using the class attribute of the div element
+div = week.find("div", class_="affix_row")
+# Get the span element that has the start date inside the div element
 span = div.find("span")
 # Return the span text as a string
 return span.text.strip()
