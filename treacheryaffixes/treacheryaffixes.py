@@ -39,14 +39,18 @@ class TreacheryAffixes(commands.Cog):
         # Find all table rows
         table_rows = soup.find_all('tr', {'class': ['table_row odd', 'table_row even']})
 
-        # Find the table row for the specified week
-        week_row = table_rows[offset]
+        # Initialize an empty string to store all affixes
+        all_affixes = ""
 
-        # Find the date in the first column
-        date = week_row.find('td', {'class': 'first_column'}).get_text(strip=True)
+        for week_row in table_rows:
+            # Find the date in the first column
+            date = week_row.find('td', {'class': 'first_column'}).get_text(strip=True)
 
-        # Find the affixes in the other columns
-        affixes = [td.get_text(strip=True) for td in week_row.find_all('td')[1:-1]]
+            # Find the affixes in the other columns
+            affixes = [td.get_text(strip=True) for td in week_row.find_all('td')[1:-1]]
 
-        # Send a message with the affixes
-        await ctx.send(f"Date: {date}\nAffixes: {', '.join(affixes)}")
+            # Append the date and affixes to the string
+            all_affixes += f"Date: {date}\nAffixes: {', '.join(affixes)}\n\n"
+
+        # Send a message with all affixes
+        await ctx.send(all_affixes)
