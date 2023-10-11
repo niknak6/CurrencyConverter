@@ -44,10 +44,10 @@ class TreacheryAffixes(commands.Cog):
         embed = Embed(title="Mythic+ Affixes", colour=0x3498db)
 
         # Add a field to the embed for current week's affixes
-        embed.add_field(name=current_week_affixes[0], value=', '.join(current_week_affixes[1]), inline=False)
+        embed.add_field(name="Current Week", value=f"{current_week_affixes[0]}: {', '.join(current_week_affixes[1])}", inline=False)
 
+        # Add a field to the embed for each future week's affixes
         for date, affix_list in future_weeks_affixes:
-            # Add a field to the embed for each future week's affixes
-            embed.add_field(name=date, value=', '.join(affix_list), inline=False)
+            embed.add_field(name=f"Upcoming Week ({date})", value=', '.join(affix_list), inline=False)
 
         await ctx.send(embed=embed)
