@@ -13,14 +13,14 @@ class TreacheryAffixes(commands.Cog):
         response = requests.get(f'https://keystone.guru/affixes?offset={offset}')
         response.raise_for_status()
 
-        # Define a SoupStrainer to parse only the table rows
-        strainer = SoupStrainer('tr', {'class': ['table_row odd', 'table_row even']})
+        # Define a SoupStrainer to parse only the table rows and data
+        strainer = SoupStrainer(['tr', 'td'])
 
         # Parse the HTML using the SoupStrainer
         soup = BeautifulSoup(response.text, 'html.parser', parse_only=strainer)
 
         # Find all table rows
-        table_rows = soup.find_all('tr')
+        table_rows = soup.find_all('tr', {'class': ['table_row odd', 'table_row even']})
 
         # Initialize an empty list to store all affixes
         all_affixes = []
