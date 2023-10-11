@@ -46,8 +46,7 @@ class TreacheryAffixes(commands.Cog):
         # Add a field to the embed for current week's affixes
         embed.add_field(name="Current Week", value=f"{current_week_affixes[0]}: {', '.join(current_week_affixes[1])}", inline=False)
 
-        # Add a field to the embed for each future week's affixes
-        for date, affix_list in future_weeks_affixes:
-            embed.add_field(name=f"Upcoming Week ({date})", value=', '.join(affix_list), inline=False)
+        # Add a field to the embed for upcoming weeks' affixes
+        embed.add_field(name="Upcoming Weeks", value='\n'.join([f"{date}: {', '.join(affix_list)}" for date, affix_list in future_weeks_affixes]), inline=False)
 
         await ctx.send(embed=embed)
