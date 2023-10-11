@@ -23,14 +23,16 @@ class TreacheryAffixes(commands.Cog):
         all_affixes = []
 
         for week_row in table_rows:
-            # Find the date in the first column
+            # Find the date in the first column and reformat it
             date = week_row.find('td', {'class': 'first_column'}).get_text(strip=True)
+            date_parts = date.split('/')
+            formatted_date = f"{date_parts[1]}/{date_parts[2].split('@')[0]}/{date_parts[0][-2:]}"
 
             # Find the affixes in the other columns
             affixes = [td.get_text(strip=True) for td in week_row.find_all('td')[1:-1]]
 
             # Append the date and affixes to the list
-            all_affixes.append((date, affixes))
+            all_affixes.append((formatted_date, affixes))
 
         return all_affixes
 
