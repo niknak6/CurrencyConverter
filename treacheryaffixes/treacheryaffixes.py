@@ -26,7 +26,9 @@ class TreacheryAffixes(commands.Cog):
             # Find the date in the first column and reformat it
             date = week_row.find('td', {'class': 'first_column'}).get_text(strip=True)
             date_parts = date.split('/')
-            formatted_date = f"{date_parts[1]}/{date_parts[2].split('@')[0]}/{date_parts[0][-2:]}"
+            month = date_parts[1]
+            day_year = date_parts[2].split('@')[0]
+            formatted_date = f"{month}/{day_year}"
 
             # Find the affixes in the other columns
             affixes = [td.get_text(strip=True) for td in week_row.find_all('td')[1:-1]]
