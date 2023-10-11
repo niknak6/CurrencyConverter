@@ -56,8 +56,8 @@ def get_start_date(week):
 
 # Define a function to get the current week from keystone.guru/affixes
 def get_current_week():
-    """This function gets the start date and affixes for
-    the current week using get_start_date and get_affixes helper functions"""
+    # This function gets the start date and affixes for
+    # the current week using get_start_date and get_affixes helper functions
     
     # Send a GET request to keystone.guru/affixes and get the response content as HTML using requests module
     response = requests.get("https://keystone.guru/affixes")
