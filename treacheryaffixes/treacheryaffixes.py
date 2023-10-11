@@ -1,6 +1,6 @@
 from redbot.core import commands
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 from discord import Embed
 
 class TreacheryAffixes(commands.Cog):
@@ -13,11 +13,14 @@ class TreacheryAffixes(commands.Cog):
         response = requests.get(f'https://keystone.guru/affixes?offset={offset}')
         response.raise_for_status()
 
-        # Parse the HTML
-        soup = BeautifulSoup(response.text, 'html.parser')
+        # Define a SoupStrainer to parse only the table rows
+        strainer = SoupStrainer('tr', {'class': ['table_row odd', 'table_row even']})
+
+        # Parse the HTML using the SoupStrainer
+        soup = BeautifulSoup(response.text, 'html.parser', parse_only=strainer)
 
         # Find all table rows
-        table_rows = soup.find_all('tr', {'class': ['table_row odd', 'table_row even']})
+        table_rows = soup.find_all('tr')
 
         # Initialize an empty list to store all affixes
         all_affixes = []
