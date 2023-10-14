@@ -48,12 +48,12 @@ class TreacheryPins(commands.Cog):
 
                 def check_message(message):
                     """A function that checks if the message is a valid response to the prompt."""
-                    return message.author != self.bot.user and message.channel.id in self.pinboards and message_to_pin == message_to_pin # Return True if the message is not from the bot, is in a channel with a pinboard, and matches the message ID that received the push pin reaction # MODIFIED
+                    return message.author != self.bot.user and message.channel.id in self.pinboards and message_to_pin == message.id # Return True if the message is not from the bot, is in a channel with a pinboard, and matches the message ID that received the push pin reaction
 
-                await self.bot.wait_for("message", check=check_message) # Wait for a message that passes the check function
+                await self.on_message(await self.bot.wait_for("message", check=check_message), message_to_pin) # Wait for a message that passes the check function and pass it along with the local variable to the on_message listener
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message, message_to_pin):
         """Handles
 
 the message events."""
@@ -63,12 +63,11 @@ the message events."""
             return
         if message.channel.id in self.pinboards: # Check if
 
-            await self.bot.wait_for("message", check=self.check_message) # Wait for a message that passes the check function
             
             pinboard_id = self.pinboards[message.channel.id] # Get the pinboard message ID
             pinboard = await message.channel.fetch_message(pinboard_id) # Fetch the pinboard message object
             embeds = pinboard.embeds # Get the list of embeds in the pinboard message
-            message_to_pin = await message.channel.fetch_message(message_to_pin) # Fetch the message object that received the push pin reaction using the local variable # MODIFIED
+            message_to_pin = await message.channel.fetch_message(message_to_pin) # Fetch the message object that received the push pin reaction using the local variable
             embed = Embed(title=message.content, url=message_to_pin.jump_url) # Create a new embed with the message subject and link to the message to be pinned
             embeds.append(embed) # Append the new embed to the list of embeds
             await pinboard.edit(embeds=embeds) # Edit the pinboard message with the updated list of embeds
