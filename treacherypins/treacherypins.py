@@ -55,8 +55,8 @@ class TreacheryPins(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         """Handles the message events."""
-        if not hasattr(self, "message_to_pin"): # Check if there is a message ID stored in self.message_to_pin # MODIFIED
-            return # If not, return early # MODIFIED
+        if not hasattr(self, "message_to_pin"): # Check if there is a message ID stored in self.message_to_pin 
+            return # If not, return early 
         if message.author == self.bot.user: # Ignore messages from the bot
             return
         if message.channel.id in self.pinboards: # Check if
@@ -66,7 +66,7 @@ class TreacheryPins(commands.Cog):
             pinboard_id = self.pinboards[message.channel.id] # Get the pinboard message ID
             pinboard = await message.channel.fetch_message(pinboard_id) # Fetch the pinboard message object
             embeds = pinboard.embeds # Get the list of embeds in the pinboard message
-            message_to_pin = await message.channel.fetch_message(self.message_to_pin) # Fetch the message object that received the push pin reaction
+            message_to_pin = await message.channel.fetch_message(message_to_pin) # Fetch the message object that received the push pin reaction using the local variable # MODIFIED
             embed = Embed(title=message.content, url=message_to_pin.jump_url) # Create a new embed with the message subject and link to the message to be pinned
             embeds.append(embed) # Append the new embed to the list of embeds
             await pinboard.edit(embeds=embeds) # Edit the pinboard message with the updated list of embeds
