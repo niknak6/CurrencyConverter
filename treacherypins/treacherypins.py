@@ -44,15 +44,23 @@ class TreacheryPins(commands.Cog):
                 channel = self.bot.get_channel(payload.channel_id) # Get the channel object
                 user = self.bot.get_user(payload.user_id) # Get the user object
                 await channel.send(f"{user.mention}, please reply with the subject of the message you want to pin.") # Prompt the user for the message subject
-                self.message_to_pin = payload.message_id # Store the message ID that received the push pin reaction
+                message_to_pin = payload.message_id # Store the message ID that received the push pin reaction in a local variable
+
+                def check_message(message):
+                    """A function that checks if the message is a valid response to the prompt."""
+                    return message.author != self.bot.user and message.channel.id in self.pinboards and message_to_pin == self.message_to_pin # Return True if the message is not from the bot, is in a channel with a pinboard, and matches the message ID that received the push pin reaction
+
+                await self.bot.wait_for("message", check=check_message) # Wait for a message that passes the check function
 
     @commands.Cog.listener()
     async def on_message(self, message):
         """Handles the message events."""
+        if not hasattr(self, "message_to_pin"): # Check if there is a message ID stored in self.message_to_pin # MODIFIED
+            return # If not, return early # MODIFIED
         if message.author == self.bot.user: # Ignore messages from the bot
             return
-        if message.channel.id in self.pinboards: # Check if the channel has a pinboard
-            
+        if message.channel.id in self.pinboards: # Check if
+
             await self.bot.wait_for("message", check=self.check_message) # Wait for a message that passes the check function
             
             pinboard_id = self.pinboards[message.channel.id] # Get the pinboard message ID
@@ -73,8 +81,3 @@ class TreacheryPins(commands.Cog):
             await prompt[1].delete() # Delete the prompt message
             
             await message.delete() # Delete the user's response
-
-    def check_message(self, message):
-        """A function that checks if the message is a valid response to the prompt."""
-        return message.author != self.bot.user and message.channel.id in self.pinboards # Return True if the message is not from the bot and is in a channel with a pinboard
-
