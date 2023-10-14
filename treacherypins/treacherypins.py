@@ -44,7 +44,6 @@ class TreacheryPins(commands.Cog):
                 channel = self.bot.get_channel(payload.channel_id) # Get the channel object
                 user = self.bot.get_user(payload.user_id) # Get the user object
                 await channel.send(f"{user.mention}, please reply with the subject of the message you want to pin.") # Prompt the user for the message subject
-                self.bot.add_listener(self.on_message, "on_message") # Add a listener for the message event
                 self.message_to_pin = payload.message_id # Store the message ID that received the push pin reaction
 
     @commands.Cog.listener()
@@ -53,6 +52,9 @@ class TreacheryPins(commands.Cog):
         if message.author == self.bot.user: # Ignore messages from the bot
             return
         if message.channel.id in self.pinboards: # Check if the channel has a pinboard
+            
+            await self.bot.wait_for("message", check=self.check_message) # Wait for a message that passes the check function
+            
             pinboard_id = self.pinboards[message.channel.id] # Get the pinboard message ID
             pinboard = await message.channel.fetch_message(pinboard_id) # Fetch the pinboard message object
             embeds = pinboard.embeds # Get the list of embeds in the pinboard message
@@ -60,7 +62,6 @@ class TreacheryPins(commands.Cog):
             embed = Embed(title=message.content, url=message_to_pin.jump_url) # Create a new embed with the message subject and link to the message to be pinned
             embeds.append(embed) # Append the new embed to the list of embeds
             await pinboard.edit(embeds=embeds) # Edit the pinboard message with the updated list of embeds
-            self.bot.remove_listener(self.on_message, "on_message") # Remove the listener for the message event
             
             confirmation = await message.channel.send(f"{message.author.mention}'s pin has been successfully added to {message.channel.name} Pinboard.") # Send a new message to confirm that the message has been added to the pinboard
             await confirmation.add_reaction("✅") # Add a green checkmark reaction to the confirmation message
@@ -72,4 +73,8 @@ class TreacheryPins(commands.Cog):
             await prompt[1].delete() # Delete the prompt message
             
             await message.delete() # Delete the user's response
+
+    def check_message(self, message):
+        """A function that checks if the message is a valid response to the prompt."""
+        return message.author != self.bot.user and message.channel.id in self.pinboards # Return True if the message is not from the bot and is in a channel with a pinboard
 
