@@ -57,8 +57,15 @@ class TreacheryPins(commands.Cog):
             embeds.append(embed) # Append the new embed to the list of embeds
             await pinboard.edit(embeds=embeds) # Edit the pinboard message with the updated list of embeds
             self.bot.remove_listener(self.on_message, "on_message") # Remove the listener for the message event
-            prompt = await message.channel.history(limit=1).flatten() # Get the last message in the channel, which is the prompt for the subject
-            await prompt[0].edit(content=f"{message.author.mention}'s pin has been successfully added to {message.channel.name} Pinboard. ✅") # Edit the prompt to confirm that the message has been added to the pinboard with a checkmark emoji
+            
+            confirmation = await message.channel.send(f"{message.author.mention}'s pin has been successfully added to {message.channel.name} Pinboard. ✅") # Send a new message to confirm that the message has been added to the pinboard with a checkmark emoji
+            await confirmation.add_reaction("✅") # Add a green checkmark reaction to the confirmation message
+            
             await asyncio.sleep(5) # Wait for 5 seconds
-            await prompt[0].delete() # Delete the prompt
+            
+            prompt = await message.channel.history(limit=2).flatten() # Get the last two messages in the channel, which are the prompt and confirmation messages
+            await prompt[0].delete() # Delete the confirmation message
+            await prompt[1].delete() # Delete the prompt message
+            
             await message.delete() # Delete the user's response
+
