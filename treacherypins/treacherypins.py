@@ -10,12 +10,12 @@ class TreacheryPins(commands.Cog):
 
     @commands.command()
     async def pinboard(self, ctx):
-        """Creates a new Treachery Pinboard."""
+        """Creates a new Treachery Pinboard and pins it to the current channel."""
         try:
             message = await ctx.send("Treachery Pinboard") # Send a new message with the content "Treachery Pinboard"
-            await message.add_reaction("📌") # Add a push pin emoji as a reaction
+            await message.pin() # Pin the message to the current channel
             self.pinboards[ctx.channel.id] = message.id # Store the pinboard message ID in the dictionary
-            await ctx.send("A new pinboard has been created.")
+            await ctx.send("A new pinboard has been created and pinned.")
         except Exception as e:
             await ctx.send(f"An error occurred: {e}")
 
@@ -36,11 +36,10 @@ class TreacheryPins(commands.Cog):
             return
         if payload.emoji.name == "📌": # Check if the reaction is a push pin emoji
             if payload.channel_id in self.pinboards: # Check if the channel has a pinboard
-                if payload.message_id == self.pinboards[payload.channel_id]: # Check if the reaction is on the pinboard message
-                    channel = self.bot.get_channel(payload.channel_id) # Get the channel object
-                    user = self.bot.get_user(payload.user_id) # Get the user object
-                    await channel.send(f"{user.mention}, please reply with the subject of the message you want to pin.") # Prompt the user for the message subject
-                    self.bot.add_listener(self.on_message, "on_message") # Add a listener for the message event
+                channel = self.bot.get_channel(payload.channel_id) # Get the channel object
+                user = self.bot.get_user(payload.user_id) # Get the user object
+                await channel.send(f"{user.mention}, please reply with the subject of the message you want to pin.") # Prompt the user for the message subject
+                self.bot.add_listener(self.on_message, "on_message") # Add a listener for the message event
 
     @commands.Cog.listener()
     async def on_message(self, message):
