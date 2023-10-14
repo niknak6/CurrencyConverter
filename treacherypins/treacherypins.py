@@ -25,6 +25,10 @@ class TreacheryPins(commands.Cog):
         """Removes the current Treachery Pinboard."""
         if ctx.channel.id in self.pinboards: # Check if the channel has a pinboard
             pinboard_id = self.pinboards[ctx.channel.id] # Get the pinboard message ID
+            
+            pinboard = await ctx.channel.fetch_message(pinboard_id) # Fetch the pinboard message object
+            await pinboard.unpin() # Unpin the pinboard message from the channel
+            
             del self.pinboards[ctx.channel.id] # Delete the pinboard message ID from the dictionary
             await ctx.send(f"The pinboard with ID {pinboard_id} has been removed.")
         else:
@@ -58,7 +62,7 @@ class TreacheryPins(commands.Cog):
             await pinboard.edit(embeds=embeds) # Edit the pinboard message with the updated list of embeds
             self.bot.remove_listener(self.on_message, "on_message") # Remove the listener for the message event
             
-            confirmation = await message.channel.send(f"{message.author.mention}'s pin has been successfully added to {message.channel.name} Pinboard. ✅") # Send a new message to confirm that the message has been added to the pinboard with a checkmark emoji
+            confirmation = await message.channel.send(f"{message.author.mention}'s pin has been successfully added to {message.channel.name} Pinboard.") # Send a new message to confirm that the message has been added to the pinboard
             await confirmation.add_reaction("✅") # Add a green checkmark reaction to the confirmation message
             
             await asyncio.sleep(5) # Wait for 5 seconds
