@@ -75,44 +75,44 @@ class TreacheryPins(commands.Cog):
         try:
             channel = self.bot.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
-            # Pass the message to the on_message listener
-            await self.on_message(message)
+            # Pass the message to the on_message listener with an explicit argument name
+            await self.on_message(message_to_pin=message)
         except discord.NotFound:
             # The message was not found, so do nothing
             return
 
     # Define a listener for message events
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message_to_pin):
         """Add an embed of the message content to the pinboard"""
         # Check if the message is not from the bot and in a channel with a pinboard
-        if message.author == self.bot.user:
+        if message_to_pin.author == self.bot.user:
             return
         pinboards = await self.config.pinboards()
-        if message.channel.id not in pinboards:
+        if message_to_pin.channel.id not in pinboards:
             return
         # Get the message ID of the pinboard
-        message_id = pinboards[message.channel.id]
+        message_id = pinboards[message_to_pin.channel.id]
         # Try to fetch the pinboard message from the channel history
         try:
-            pin_message = await message.channel.fetch_message(message_id)
+            pin_message = await message_to_pin.channel.fetch_message(message_id)
             # Create an embed of the original message content with author, timestamp, and attachments
-            embed = discord.Embed(description=message.content, timestamp=message.created_at)
-            embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
-            if message.attachments:
-                embed.set_image(url=message.attachments[0].url)
+            embed = discord.Embed(description=message_to_pin.content, timestamp=message_to_pin.created_at)
+            embed.set_author(name=message_to_pin.author.display_name, icon_url=message_to_pin.author.avatar_url)
+            if message_to_pin.attachments:
+                embed.set_image(url=message_to_pin.attachments[0].url)
             # Edit the pinboard message and append the embed to the description
             pin_embed = pin_message.embeds[0]
             pin_embed.description += f"\n\n{embed.to_dict()}"
             await pin_message.edit(embed=pin_embed)
             # Send a confirmation message and react with a checkmark emoji
-            confirm = await message.channel.send("Message added to the pinboard.")
+            confirm = await message_to_pin.channel.send("Message added to the pinboard.")
             await confirm.add_reaction("✅")
             # Wait for 5 seconds and delete the last two messages in the channel history
             await asyncio.sleep(5)
-            await message.channel.purge(limit=2)
+            await message_to_pin.channel.purge(limit=2)
             # Delete the original message
-            await message.delete()
+            await message_to_pin.delete()
         except discord.NotFound:
             # The pinboard message was not found, so do nothing
             return
