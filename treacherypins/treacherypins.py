@@ -47,17 +47,19 @@ class TreacheryPins(commands.Cog):
                 message_to_pin = payload.message_id # Store the message ID that received the push pin reaction in a local variable
 
                 def check_message(message):
-                    """A function that checks if the message is a valid response to the prompt."""
+                    """A function that checks if
+
+the message is a valid response to the prompt."""
                     return message.author != self.bot.user and message.channel.id in self.pinboards and message_to_pin == message.id # Return True if the message is not from the bot, is in a channel with a pinboard, and matches the message ID that received the push pin reaction
 
-                await self.on_message(await self.bot.wait_for("message", check=check_message)) # Wait for a message that passes the check function and pass it to the on_message listener
+                await self.on_message(await self.bot.wait_for("message", check=check_message), message_to_pin) # Wait for a message that passes the check function and pass it along with the local variable to the on_message listener
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message, message_to_pin): # MODIFIED
         """Handles
 
 the message events."""
-        nonlocal message_to_pin # Use the nonlocal keyword to access the local variable from the outer function # MODIFIED
+        # nonlocal message_to_pin # Use the nonlocal keyword to access the local variable from the outer function # MODIFIED - REMOVED
         if not hasattr(self, "message_to_pin"): # Check if there is a message ID stored in self.message_to_pin 
             return # If not, return early 
         if message.author == self.bot.user: # Ignore messages from the bot
