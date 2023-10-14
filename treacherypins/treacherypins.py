@@ -12,7 +12,7 @@ class TreacheryPins(commands.Cog):
     async def pinboard(self, ctx):
         """Creates a new Treachery Pinboard and pins it to the current channel."""
         try:
-            message = await ctx.send("Treachery Pinboard") # Send a new message with the content "Treachery Pinboard"
+            message = await ctx.send(f"__**{ctx.channel.name} Pinboard**__") # Send a new message with the channel name as the content
             await message.pin() # Pin the message to the current channel
             self.pinboards[ctx.channel.id] = message.id # Store the pinboard message ID in the dictionary
             await ctx.send("A new pinboard has been created and pinned.")
