@@ -9,19 +9,25 @@ class TreacheryPins(commands.Cog):
         self.pinboards = {} # A dictionary that maps channel IDs to pinboard message IDs
 
     @commands.command()
-    async def pinboard(self, ctx, message_id: int):
-        """Designates a message as a Treachery Pinboard."""
+    async def pinboard(self, ctx):
+        """Creates a new Treachery Pinboard."""
         try:
-            message = await ctx.channel.fetch_message(message_id) # Fetch the message by ID
-            if message.author != ctx.me: # Check if the message is sent by the bot
-                await ctx.send("I can only designate my own messages as pinboards.")
-                return
-            await message.edit(content="Treachery Pinboard") # Edit the message content
+            message = await ctx.send("Treachery Pinboard") # Send a new message with the content "Treachery Pinboard"
             await message.add_reaction("📌") # Add a push pin emoji as a reaction
             self.pinboards[ctx.channel.id] = message.id # Store the pinboard message ID in the dictionary
-            await ctx.send("The message has been designated as a pinboard.")
+            await ctx.send("A new pinboard has been created.")
         except Exception as e:
             await ctx.send(f"An error occurred: {e}")
+
+    @commands.command()
+    async def removepinboard(self, ctx):
+        """Removes the current Treachery Pinboard."""
+        if ctx.channel.id in self.pinboards: # Check if the channel has a pinboard
+            pinboard_id = self.pinboards[ctx.channel.id] # Get the pinboard message ID
+            del self.pinboards[ctx.channel.id] # Delete the pinboard message ID from the dictionary
+            await ctx.send(f"The pinboard with ID {pinboard_id} has been removed.")
+        else:
+            await ctx.send("There is no pinboard in this channel.")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
