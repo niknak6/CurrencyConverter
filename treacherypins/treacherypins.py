@@ -48,13 +48,15 @@ class TreacheryPins(commands.Cog):
 
                 def check_message(message):
                     """A function that checks if the message is a valid response to the prompt."""
-                    return message.author != self.bot.user and message.channel.id in self.pinboards and message_to_pin == self.message_to_pin # Return True if the message is not from the bot, is in a channel with a pinboard, and matches the message ID that received the push pin reaction
+                    return message.author != self.bot.user and message.channel.id in self.pinboards and message_to_pin == message_to_pin # Return True if the message is not from the bot, is in a channel with a pinboard, and matches the message ID that received the push pin reaction # MODIFIED
 
                 await self.bot.wait_for("message", check=check_message) # Wait for a message that passes the check function
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        """Handles the message events."""
+        """Handles
+
+the message events."""
         if not hasattr(self, "message_to_pin"): # Check if there is a message ID stored in self.message_to_pin 
             return # If not, return early 
         if message.author == self.bot.user: # Ignore messages from the bot
