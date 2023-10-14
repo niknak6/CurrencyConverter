@@ -40,6 +40,7 @@ class TreacheryPins(commands.Cog):
                 user = self.bot.get_user(payload.user_id) # Get the user object
                 await channel.send(f"{user.mention}, please reply with the subject of the message you want to pin.") # Prompt the user for the message subject
                 self.bot.add_listener(self.on_message, "on_message") # Add a listener for the message event
+                self.message_to_pin = payload.message_id # Store the message ID that received the push pin reaction
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -50,7 +51,8 @@ class TreacheryPins(commands.Cog):
             pinboard_id = self.pinboards[message.channel.id] # Get the pinboard message ID
             pinboard = await message.channel.fetch_message(pinboard_id) # Fetch the pinboard message object
             embeds = pinboard.embeds # Get the list of embeds in the pinboard message
-            embed = Embed(title=message.content, url=message.jump_url) # Create a new embed with the message subject and link
+            message_to_pin = await message.channel.fetch_message(self.message_to_pin) # Fetch the message object that received the push pin reaction
+            embed = Embed(title=message.content, url=message_to_pin.jump_url) # Create a new embed with the message subject and link to the message to be pinned
             embeds.append(embed) # Append the new embed to the list of embeds
             await pinboard.edit(embeds=embeds) # Edit the pinboard message with the updated list of embeds
             self.bot.remove_listener(self.on_message, "on_message") # Remove the listener for the message event
