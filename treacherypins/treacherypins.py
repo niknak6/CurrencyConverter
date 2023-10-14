@@ -1,5 +1,6 @@
 from redbot.core import commands
 from discord import Embed
+import asyncio
 
 class TreacheryPins(commands.Cog):
     """A cog that allows users to create a pinboard of messages."""
@@ -56,3 +57,8 @@ class TreacheryPins(commands.Cog):
             embeds.append(embed) # Append the new embed to the list of embeds
             await pinboard.edit(embeds=embeds) # Edit the pinboard message with the updated list of embeds
             self.bot.remove_listener(self.on_message, "on_message") # Remove the listener for the message event
+            prompt = await message.channel.history(limit=1).flatten() # Get the last message in the channel, which is the prompt for the subject
+            await prompt[0].edit(content=f"{message.author.mention}, your message has been added to the pinboard.") # Edit the prompt to confirm that the message has been added to the pinboard
+            await asyncio.sleep(5) # Wait for 5 seconds
+            await prompt[0].delete() # Delete the prompt
+            await message.delete() # Delete the user's response
