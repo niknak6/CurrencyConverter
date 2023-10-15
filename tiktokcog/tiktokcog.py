@@ -89,7 +89,7 @@ class TikTokCog(commands.Cog):
             # Add the additional text to the formatted message as a message field
             formatted_message += f"\n\nMessage: {additional_text}"
 
-       # Remove the new line character from the formatted message 
+       # Indent the line with four spaces 
        formatted_message = formatted_message.rstrip("\n") # Added line
 
        # Repost the formatted message and remove the original message 
