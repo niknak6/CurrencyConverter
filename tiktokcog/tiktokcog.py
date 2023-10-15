@@ -84,7 +84,7 @@ class TikTokCog(commands.Cog):
         additional_text = " ".join(content_parts)
 
         # Check if there is any additional text
-        if additional_text:
+        if additional_text: # Added colon
 
             # Add the additional text to the formatted message as a message field
             formatted_message += f"\n\nMessage: {additional_text}"
