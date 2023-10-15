@@ -68,37 +68,16 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
-        # Initialize the formatted message with the custom emoji, the user mention, and the modified url
-        formatted_message = f"{emoji} {user.mention} shared this TikTok video!\n{new_url}" # Added line
+        # Create a formatted message with the custom emoji, the mention and modified url
+        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}" # Modified line
 
-        # Get the clean content of the message
-        clean_content = message.clean_content
+        # Repost the formatted message and remove the original message
+        await message.channel.send(formatted_message)
+        await message.delete()
 
-        # Split the content by whitespace
-        content_parts = clean_content.split()
+        # Delete the custom emoji
+        await emoji.delete()
 
-        # Filter out the tiktok url
-        content_parts = [part for part in content_parts if not self.tiktok_pattern.match(part)]
-
-        # Join the remaining parts with whitespace
-        additional_text = " ".join(content_parts)
-
-        # Check if there is any additional text
-        if additional_text: # Added colon
-
-            # Add the additional text to the formatted message as a message field
-            formatted_message += f"\n\nMessage: {additional_text}"
-
-       # Indent the line with four spaces 
-       formatted_message = formatted_message.rstrip("\n") # Added line
-
-       # Repost the formatted message and remove the original message 
-       await message.channel.send(formatted_message) 
-       await message.delete()
-
-       # Delete the custom emoji 
-       await emoji.delete()
-
-       # Delete the avatar.png and avatar_cropped.png files 
-       os.remove("avatar.png") 
-       os.remove("avatar_cropped.png")
+        # Delete the avatar.png and avatar_cropped.png files
+        os.remove("avatar.png")
+        os.remove("avatar_cropped.png")
