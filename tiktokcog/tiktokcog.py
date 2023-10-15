@@ -27,7 +27,7 @@ class TikTokCog(commands.Cog):
         url_dict = tiktok_url.groupdict() # Added line
 
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
-        new_url = url_dict["prefix"] + url_dict["suffix"] + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
+        new_url = f"{url_dict['prefix']} {url_dict['suffix']} vxtiktok.com/{tiktok_url.group(5)}{tiktok_url.group(6)}" # Modified line
 
         # Get the user object from the message
         user = message.author
@@ -71,3 +71,22 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
+        # Check if the prefix or suffix are empty strings or not
+        if url_dict["prefix"] or url_dict["suffix"]: # Added line
+            message_field = f"Message: {url_dict['prefix']} {url_dict['suffix']}\n" # Added line
+        else: # Added line
+            message_field = "" # Added line
+
+        # Create a formatted message with the custom emoji, the mention, the message field and modified url
+        formatted_message = f"{emoji} {user.mention} shared this TikTok!\n{message_field}{new_url}" # Modified line
+
+        # Repost the formatted message and remove the original message
+        await message.channel.send(formatted_message)
+        await message.delete()
+
+        # Delete the custom emoji
+        await emoji.delete()
+
+        # Delete the avatar.png and avatar_cropped.png files
+        os.remove("avatar.png")
+        os.remove("avatar_cropped.png")
