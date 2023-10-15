@@ -4,7 +4,6 @@ import re
 import requests
 from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
-from urllib.parse import quote_plus, unquote_plus # Import urllib.parse library
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -12,7 +11,7 @@ class TikTokCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # Compile the tiktok pattern only once
-        self.tiktok_pattern = re.compile(r"(?i)(?P<prefix>.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(?P<suffix>.*)") # Modified line
+        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)") # Modified line
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -24,11 +23,8 @@ class TikTokCog(commands.Cog):
         if not tiktok_url:
             return
 
-        # Extract the prefix and suffix from the tiktok url match object
-        url_dict = tiktok_url.groupdict() # Added line
-
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
-        new_url = tiktok_url.group(2) + url_dict['prefix'].replace("https://", "") + url_dict['suffix'].replace("https://", "") + "vxtiktok.com/" + tiktok_url.group(4) + "." + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
+        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
 
         # Get the user object from the message
         user = message.author
@@ -72,14 +68,8 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
-        # Check if the prefix or suffix are empty strings or not
-        if url_dict["prefix"] or url_dict["suffix"]: # Added line
-            message_field = f"Message: {unquote_plus(url_dict['prefix'])} {unquote_plus(url_dict['suffix'])}\n" # Added line
-        else: # Added line
-            message_field = "" # Added line
-
-        # Create a formatted message with the custom emoji, the mention, the message field and modified url
-        formatted_message = f"{emoji} {user.mention} shared this TikTok!\n{message_field}{new_url}" # Modified line
+        # Create a formatted message with the custom emoji, the mention and modified url
+        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}" # Modified line
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
