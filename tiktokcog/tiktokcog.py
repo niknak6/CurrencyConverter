@@ -68,6 +68,9 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
+        # Initialize the formatted message with the custom emoji, the user mention, and the modified url
+        formatted_message = f"{emoji} {user.mention} shared this TikTok video!\n{new_url}" # Added line
+
         # Get the clean content of the message
         clean_content = message.clean_content
 
