@@ -89,3 +89,16 @@ class TikTokCog(commands.Cog):
             # Add the additional text to the formatted message as a message field
             formatted_message += f"\n\nMessage: {additional_text}"
 
+       # Remove the new line character from the formatted message 
+       formatted_message = formatted_message.rstrip("\n") # Added line
+
+       # Repost the formatted message and remove the original message 
+       await message.channel.send(formatted_message) 
+       await message.delete()
+
+       # Delete the custom emoji 
+       await emoji.delete()
+
+       # Delete the avatar.png and avatar_cropped.png files 
+       os.remove("avatar.png") 
+       os.remove("avatar_cropped.png")
