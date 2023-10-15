@@ -4,7 +4,7 @@ import re
 import requests
 from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
-from urllib.parse import quote_plus # Import urllib.parse library
+from urllib.parse import quote_plus, unquote_plus # Import urllib.parse library
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -28,7 +28,7 @@ class TikTokCog(commands.Cog):
         url_dict = tiktok_url.groupdict() # Added line
 
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
-        new_url = f"{quote_plus(url_dict['prefix'])}{quote_plus(url_dict['suffix'])}vxtiktok.com/{tiktok_url.group(5)}{tiktok_url.group(6)}" # Modified line
+        new_url = f"{tiktok_url.group(2)}{unquote_plus(url_dict['prefix'])} {unquote_plus(url_dict['suffix'])} vxtiktok.com/{tiktok_url.group(5)}{tiktok_url.group(6)}" # Modified line
 
         # Get the user object from the message
         user = message.author
@@ -74,7 +74,7 @@ class TikTokCog(commands.Cog):
 
         # Check if the prefix or suffix are empty strings or not
         if url_dict["prefix"] or url_dict["suffix"]: # Added line
-            message_field = f"Message: {url_dict['prefix']} {url_dict['suffix']}\n" # Added line
+            message_field = f"Message: {unquote_plus(url_dict['prefix'])} {unquote_plus(url_dict['suffix'])}\n" # Added line
         else: # Added line
             message_field = "" # Added line
 
