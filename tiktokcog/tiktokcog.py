@@ -81,4 +81,13 @@ class TikTokCog(commands.Cog):
         # Create a formatted message with the custom emoji, the mention, the message field and modified url
         formatted_message = f"{emoji} {user.mention} shared this TikTok!\n{message_field}{new_url}" # Modified line
 
-        # Repost the
+        # Repost the formatted message and remove the original message
+        await message.channel.send(formatted_message)
+        await message.delete()
+
+        # Delete the custom emoji
+        await emoji.delete()
+
+        # Delete the avatar.png and avatar_cropped.png files
+        os.remove("avatar.png")
+        os.remove("avatar_cropped.png")
