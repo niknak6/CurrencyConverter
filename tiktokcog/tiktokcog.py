@@ -1,9 +1,9 @@
 import os
-import random
 import re
 import requests
 from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
+import discord # Import discord library
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -11,7 +11,7 @@ class TikTokCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # Compile the tiktok pattern only once
-        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)") # Modified line
+        self.tiktok_pattern = re.compile(r"(?i)https?://(\w+\.)?tiktok.com/(.+)") # Simplified line
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -23,8 +23,8 @@ class TikTokCog(commands.Cog):
         if not tiktok_url:
             return
 
-        # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
-        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
+        # Replace the tiktok.com part of the url with vxtiktok.com, while preserving the protocol, subdomain, and path parts
+        new_url = self.tiktok_pattern.sub(r"\g<0>".replace("tiktok.com", "vxtiktok.com"), message.content) # Simplified line
 
         # Get the user object from the message
         user = message.author
@@ -55,21 +55,18 @@ class TikTokCog(commands.Cog):
         # Apply the mask to the avatar image using the Image.composite method
         image = Image.composite(image, Image.new("RGBA", image.size), mask)
 
-        # Save the cropped image as avatar_cropped.png
-        image.save("avatar_cropped.png")
+        # Create a discord.File object from the avatar image in memory
+        file = discord.File(image, filename="avatar_cropped.png") # Simplified line
 
         # Get the guild object from the message
         guild = message.guild
 
-        # Open the cropped image file in binary mode
-        with open("avatar_cropped.png", "rb") as image:
-
-            # Create a custom emoji with a random name and the image file
-            emoji_name = f"user_avatar_{random.randint(0, 9999)}"
-            emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
+        # Create a custom emoji with a random name and the file object
+        emoji_name = f"user_avatar_{random.randint(0, 9999)}"
+        emoji = await guild.create_custom_emoji(name=emoji_name, image=file.read()) # Simplified line
 
         # Create a formatted message with the custom emoji, the mention and modified url
-        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}" # Modified line
+        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}" 
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
@@ -78,6 +75,5 @@ class TikTokCog(commands.Cog):
         # Delete the custom emoji
         await emoji.delete()
 
-        # Delete the avatar.png and avatar_cropped.png files
+        # Delete the avatar.png file
         os.remove("avatar.png")
-        os.remove("avatar_cropped.png")
