@@ -34,22 +34,21 @@ class TikTokCog(commands.Cog):
         # Get the avatar URL from the user object
         avatar_url = user.avatar.url
 
-        # Download the image from the URL and create a file object from the image data
-        response = requests.get(avatar_url)
-        file = discord.File(io.BytesIO(response.content), filename="avatar_cropped.png") # Modified line
-
-        # Create an asset object from the file object's fp attribute
-        asset = discord.Asset(self.bot._connection, data=file.fp.read()) # Added line
+        # Create an asset object from the avatar URL
+        asset = discord.Asset(self.bot._connection, url=avatar_url) # Modified line
 
         # Resize the asset to 128x128 pixels
-        asset = asset.resize(128, 128) # Added line
+        asset = asset.resize(128, 128) # Modified line
+
+        # Create a file object from the asset's read method
+        file = discord.File(await asset.read(), filename="avatar_cropped.png") # Modified line
 
         # Get the guild object from the message
         guild = message.guild
 
-        # Create a custom emoji with a random name and the asset's read method
+        # Create a custom emoji with a random name and the file object's fp attribute
         emoji_name = f"user_avatar_{random.randint(0, 9999)}" 
-        emoji = await guild.create_custom_emoji(name=emoji_name, image=await asset.read()) # Modified line
+        emoji = await guild.create_custom_emoji(name=emoji_name, image=file.fp.read()) # Modified line
 
         # Create a formatted message with the custom emoji, the mention and modified url
         formatted_message = f"{emoji} {user.mention} shared this TikTok. {new_url}" 
