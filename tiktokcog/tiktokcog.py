@@ -18,25 +18,24 @@ class TikTokCog(commands.Cog):
         if message.author.bot:
             return
         try: # Added line
-            # Split the message content by whitespace and store it in a list
-            message_list = message.content.split() # Added line
+            # Replace any whitespace characters in the message content with a single space and store it in a string
+            message_text = message.content.replace("\s+", " ") # Added line
 
-            # Find the index of the tiktok url in the list
-            for i in range(len(message_list)): # Added line
-                parsed_url = urllib.parse.urlparse(message_list[i]) # Added line
-                if "tiktok.com" in parsed_url.netloc: # Added line
-                    url_index = i # Added line
-                    break # Added line
-            else: # Added line
-                # If no tiktok url is found in the list, return
-                return # Added line
+            # Parse the message text as a url and store it in a ParseResult object
+            parsed_url = urllib.parse.urlparse(message_text) # Modified line
 
-            # Modify the tiktok url in the list by adding vx in front of tiktok.com using the replace method
-            message_list[url_index] = message_list[url_index].replace("tiktok.com", "vxtiktok.com") # Modified line
+            # Check if the netloc part of the url contains tiktok.com
+            if "tiktok.com" not in parsed_url.netloc: # Modified line
+                return
 
-            # Join the text parts in the list before and after the tiktok url into two strings
-            text_before = " ".join(message_list[:url_index]) # Added line
-            text_after = " ".join(message_list[url_index + 1:]) # Added line
+            # Modify the netloc part of the url by adding vx in front of tiktok.com using the replace method
+            new_netloc = parsed_url.netloc.replace("tiktok.com", "vxtiktok.com") # Modified line
+
+            # Rebuild the url with the new netloc and store it in a string
+            new_url = urllib.parse.urlunparse(parsed_url._replace(netloc=new_netloc)) # Modified line
+
+            # Remove the url from the message text and store it in a string
+            message_text = message_text.replace(new_url, "") # Added line
 
         except ValueError: # Added line
             # If the message content is not a valid url, return
@@ -87,13 +86,10 @@ class TikTokCog(commands.Cog):
         # Create a formatted message with the custom emoji, the user's mention, and the modified url
         formatted_message = f"{emoji} {user.mention} shared this TikTok!\n" # Modified line
         
-        if text_before: # Added line
-            formatted_message += f"Message: {text_before}\n" # Added line
+        if message_text: # Added line
+            formatted_message += f"Message: {message_text}\n" # Added line
         
-        formatted_message += message_list[url_index] + "\n" # Modified line
-        
-        if text_after: # Added line
-            formatted_message += f"Message: {text_after}\n" # Added line
+        formatted_message += new_url + "\n" # Modified line
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
