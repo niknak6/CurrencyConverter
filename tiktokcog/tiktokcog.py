@@ -5,7 +5,7 @@ from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
 import discord # Import discord library
 import io # Import io library
-import random
+import random # Import random library
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -63,9 +63,9 @@ class TikTokCog(commands.Cog):
         # Get the guild object from the message
         guild = message.guild
 
-        # Create a custom emoji with a random name and the file object
-        emoji_name = f"user_avatar_{random.randint(0, 9999)}"
-        emoji = await guild.create_custom_emoji(name=emoji_name, image=file.read()) # Simplified line
+        # Create a custom emoji with a random name and the file object's fp attribute
+        emoji_name = f"user_avatar_{random.randint(0, 9999)}" 
+        emoji = await guild.create_custom_emoji(name=emoji_name, image=file.fp.read()) # Modified line
 
         # Create a formatted message with the custom emoji, the mention and modified url
         formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}" 
