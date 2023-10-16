@@ -71,7 +71,7 @@ class TikTokCog(commands.Cog):
         emoji = await guild.create_custom_emoji(name=emoji_name, image=file.fp.read()) # Modified line
 
         # Create a formatted message with the custom emoji, the mention and modified url
-        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}" 
+        formatted_message = f"{emoji} {user.mention} shared this TikTok. {new_url}" 
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
