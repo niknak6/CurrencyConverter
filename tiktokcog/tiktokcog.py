@@ -5,6 +5,7 @@ from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
 import discord # Import discord library
 import io # Import io library
+import random
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
