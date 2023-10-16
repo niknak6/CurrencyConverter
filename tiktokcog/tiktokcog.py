@@ -18,18 +18,26 @@ class TikTokCog(commands.Cog):
         if message.author.bot:
             return
         try: # Added line
-            # Parse the message content as a url and store it in a ParseResult object
-            parsed_url = urllib.parse.urlparse(message.content) # Added line
+            # Split the message content by whitespace and store it in a list
+            message_list = message.content.split() # Added line
 
-            # Check if the netloc part of the url contains tiktok.com
-            if "tiktok.com" not in parsed_url.netloc: # Added line
-                return
+            # Find the index of the tiktok url in the list
+            for i in range(len(message_list)): # Added line
+                parsed_url = urllib.parse.urlparse(message_list[i]) # Added line
+                if "tiktok.com" in parsed_url.netloc: # Added line
+                    url_index = i # Added line
+                    break # Added line
+            else: # Added line
+                # If no tiktok url is found in the list, return
+                return # Added line
 
-            # Modify the netloc part of the url by adding vx in front of tiktok.com
-            new_netloc = parsed_url.netloc.replace("tiktok.com", "vxtiktok.com") # Added line
+            # Modify the tiktok url in the list by adding vx in front of tiktok.com using the replace method
+            message_list[url_index] = message_list[url_index].replace("tiktok.com", "vxtiktok.com") # Modified line
 
-            # Rebuild the url with the new netloc and store it in a string
-            new_url = urllib.parse.urlunparse(parsed_url._replace(netloc=new_netloc)) # Added line
+            # Join the text parts in the list before and after the tiktok url into two strings
+            text_before = " ".join(message_list[:url_index]) # Added line
+            text_after = " ".join(message_list[url_index + 1:]) # Added line
+
         except ValueError: # Added line
             # If the message content is not a valid url, return
             return # Added line
@@ -77,7 +85,12 @@ class TikTokCog(commands.Cog):
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
         # Create a formatted message with the custom emoji, the user's mention, and the modified url
-        formatted_message = f"{emoji} {user.mention} shared this TikTok!\n{new_url}" # Modified line
+        formatted_message = f"{emoji} {user.mention} shared this TikTok!\n" # Modified line
+        if text_before: # Added line
+            formatted_message += f"Message: {text_before}\n" # Added line
+        formatted_message += message_list[url_index] + "\n" # Modified line
+        if text_after: # Added line
+            formatted_message += f"Message: {text_after}\n" # Added line
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
