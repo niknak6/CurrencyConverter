@@ -57,8 +57,11 @@ class TikTokCog(commands.Cog):
         # Apply the mask to the avatar image using the Image.composite method
         image = Image.composite(image, Image.new("RGBA", image.size), mask)
 
-        # Create a discord.File object from the avatar image in memory
-        file = discord.File(io.BytesIO(image.tobytes()), filename="avatar_cropped.png") # Modified line
+        # Save the image in PNG format
+        image.save("avatar_cropped.png", format="PNG") # Modified line
+
+        # Create a discord.File object from the avatar image file
+        file = discord.File(io.BytesIO(open("avatar_cropped.png", "rb").read()), filename="avatar_cropped.png") # Modified line
 
         # Get the guild object from the message
         guild = message.guild
@@ -77,5 +80,6 @@ class TikTokCog(commands.Cog):
         # Delete the custom emoji
         await emoji.delete()
 
-        # Delete the avatar.png file
+        # Delete the avatar.png and avatar_cropped.png files
         os.remove("avatar.png")
+        os.remove("avatar_cropped.png")
