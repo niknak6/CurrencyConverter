@@ -23,8 +23,16 @@ class TikTokCog(commands.Cog):
         if not tiktok_url:
             return
 
-        # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
-        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
+        # Split the message content by the tiktok pattern and store it in a list
+        message_list = re.split(self.tiktok_pattern, message.content) # Added line
+
+        # Modify each tiktok url in the list by adding vx in front of tiktok.com using a replacement function
+        def replace_url(match): # Added line
+            return match.group(1) + match.group(2) + match.group(3) + "vxtiktok.com/" + match.group(5) + match.group(6) # Added line
+        
+        for i in range(len(message_list)): # Added line
+            if re.match(self.tiktok_pattern, message_list[i]): # Added line
+                message_list[i] = re.sub(self.tiktok_pattern, replace_url, message_list[i]) # Added line
 
         # Get the user object from the message
         user = message.author
@@ -68,8 +76,13 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
-        # Create a formatted message with the custom emoji, the mention and modified url
-        formatted_message = f"{emoji} {user.mention} shared this TikTok!\n{new_url}" # Modified line
+        # Create a formatted message with the custom emoji, the user's mention, and the modified url
+        formatted_message = f"{emoji} {user.mention} shared this TikTok!\n" # Modified line
+        for part in message_list: # Added line
+            if re.match(self.tiktok_pattern, part): # Added line
+                formatted_message += part + "\n" # Added line
+            else: # Added line
+                formatted_message += "Message: " + part + "\n" # Added line
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
