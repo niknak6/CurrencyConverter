@@ -28,40 +28,15 @@ class TikTokCog(commands.Cog):
         # Replace the tiktok.com part of the url with vxtiktok.com, while preserving the protocol, subdomain, and path parts
         new_url = self.tiktok_pattern.sub(r"\g<0>".replace("tiktok.com", "vxtiktok.com"), message.content) # Simplified line
 
-        # Get the user object from the message
-        user = message.author
+        # Get the user object from the message using the discord.utils.get function
+        user = discord.utils.get(message.guild.members, id=message.author.id) # Modified line
 
         # Get the avatar URL from the user object
         avatar_url = user.avatar.url
 
-        # Download the image from the URL and save it as avatar.png
+        # Download the image from the URL and create a file object from the image data
         response = requests.get(avatar_url)
-        with open("avatar.png", "wb") as file:
-            file.write(response.content)
-
-        # Open the avatar image file
-        image = Image.open("avatar.png")
-
-        # Resize the image to 128x128 pixels
-        image = image.resize((128, 128))
-
-        # Create a mask image with the same size and RGBA mode
-        mask = Image.new("RGBA", image.size)
-
-        # Create a Draw object for the mask image
-        draw = ImageDraw.Draw(mask)
-
-        # Draw a black circle on the mask image using the ellipse method
-        draw.ellipse([0, 0, *image.size], fill=(0, 0, 0, 255))
-
-        # Apply the mask to the avatar image using the Image.composite method
-        image = Image.composite(image, Image.new("RGBA", image.size), mask)
-
-        # Save the image in PNG format
-        image.save("avatar_cropped.png", format="PNG") # Modified line
-
-        # Create a discord.File object from the avatar image file
-        file = discord.File(io.BytesIO(open("avatar_cropped.png", "rb").read()), filename="avatar_cropped.png") # Modified line
+        file = discord.File(io.BytesIO(response.content), filename="avatar_cropped.png") # Modified line
 
         # Get the guild object from the message
         guild = message.guild
@@ -79,7 +54,3 @@ class TikTokCog(commands.Cog):
 
         # Delete the custom emoji
         await emoji.delete()
-
-        # Delete the avatar.png and avatar_cropped.png files
-        os.remove("avatar.png")
-        os.remove("avatar_cropped.png")
