@@ -1,11 +1,9 @@
 import os
+import random
 import re
 import requests
 from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
-import discord # Import discord library
-import io # Import io library
-import random # Import random library
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -13,7 +11,7 @@ class TikTokCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # Compile the tiktok pattern only once
-        self.tiktok_pattern = re.compile(r"(?i)https?://(\w+\.)?tiktok.com/(.+)") # Simplified line
+        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)") # Modified line
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -25,33 +23,53 @@ class TikTokCog(commands.Cog):
         if not tiktok_url:
             return
 
-        # Replace the tiktok.com part of the url with vxtiktok.com, while preserving the protocol, subdomain, and path parts
-        new_url = self.tiktok_pattern.sub(r"\g<0>".replace("tiktok.com", "vxtiktok.com"), message.content) # Simplified line
+        # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
+        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
 
-        # Get the user object from the message using the discord.utils.get function
-        user = discord.utils.get(message.guild.members, id=message.author.id) # Modified line
+        # Get the user object from the message
+        user = message.author
 
         # Get the avatar URL from the user object
         avatar_url = user.avatar.url
 
-        # Create an asset object from the avatar URL and the "avatar" key
-        asset = discord.Asset(self.bot._connection, url=avatar_url, key="avatar") # Modified line
+        # Download the image from the URL and save it as avatar.png
+        response = requests.get(avatar_url)
+        with open("avatar.png", "wb") as file:
+            file.write(response.content)
 
-        # Resize the asset to 128x128 pixels
-        asset = asset.resize(128, 128) # Modified line
+        # Open the avatar image file
+        image = Image.open("avatar.png")
 
-        # Create a file object from the asset's read method
-        file = discord.File(await asset.read(), filename="avatar_cropped.png") # Modified line
+        # Resize the image to 128x128 pixels
+        image = image.resize((128, 128))
+
+        # Create a mask image with the same size and RGBA mode
+        mask = Image.new("RGBA", image.size)
+
+        # Create a Draw object for the mask image
+        draw = ImageDraw.Draw(mask)
+
+        # Draw a black circle on the mask image using the ellipse method
+        draw.ellipse([0, 0, *image.size], fill=(0, 0, 0, 255))
+
+        # Apply the mask to the avatar image using the Image.composite method
+        image = Image.composite(image, Image.new("RGBA", image.size), mask)
+
+        # Save the cropped image as avatar_cropped.png
+        image.save("avatar_cropped.png")
 
         # Get the guild object from the message
         guild = message.guild
 
-        # Create a custom emoji with a random name and the file object's fp attribute
-        emoji_name = f"user_avatar_{random.randint(0, 9999)}" 
-        emoji = await guild.create_custom_emoji(name=emoji_name, image=file.fp.read()) # Modified line
+        # Open the cropped image file in binary mode
+        with open("avatar_cropped.png", "rb") as image:
+
+            # Create a custom emoji with a random name and the image file
+            emoji_name = f"user_avatar_{random.randint(0, 9999)}"
+            emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
         # Create a formatted message with the custom emoji, the mention and modified url
-        formatted_message = f"{emoji} {user.mention} shared this TikTok. {new_url}" 
+        formatted_message = f"{emoji} {user.mention} shared this TikTok video.{new_url}" # Modified line
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
@@ -59,3 +77,7 @@ class TikTokCog(commands.Cog):
 
         # Delete the custom emoji
         await emoji.delete()
+
+        # Delete the avatar.png and avatar_cropped.png files
+        os.remove("avatar.png")
+        os.remove("avatar_cropped.png")
