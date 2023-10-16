@@ -86,9 +86,12 @@ class TikTokCog(commands.Cog):
 
         # Create a formatted message with the custom emoji, the user's mention, and the modified url
         formatted_message = f"{emoji} {user.mention} shared this TikTok!\n" # Modified line
+        
         if text_before: # Added line
             formatted_message += f"Message: {text_before}\n" # Added line
+        
         formatted_message += message_list[url_index] + "\n" # Modified line
+        
         if text_after: # Added line
             formatted_message += f"Message: {text_after}\n" # Added line
 
