@@ -1,6 +1,6 @@
 import os
 import random
-import re
+import urllib.parse # Import urllib.parse module
 import requests
 from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
@@ -10,8 +10,6 @@ class TikTokCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        # Compile the tiktok pattern only once
-        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)") # Modified line
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -19,20 +17,22 @@ class TikTokCog(commands.Cog):
         # Check if the message is from a user and contains a tiktok url
         if message.author.bot:
             return
-        tiktok_url = self.tiktok_pattern.search(message.content)
-        if not tiktok_url:
-            return
+        try: # Added line
+            # Parse the message content as a url and store it in a ParseResult object
+            parsed_url = urllib.parse.urlparse(message.content) # Added line
 
-        # Split the message content by the tiktok pattern and store it in a list
-        message_list = re.split(self.tiktok_pattern, message.content) # Added line
+            # Check if the netloc part of the url contains tiktok.com
+            if "tiktok.com" not in parsed_url.netloc: # Added line
+                return
 
-        # Modify each tiktok url in the list by adding vx in front of tiktok.com using a replacement function
-        def replace_url(match): # Added line
-            return match.group(1) + match.group(2) + match.group(3) + "vxtiktok.com/" + match.group(5) + match.group(6) # Added line
-        
-        for i in range(len(message_list)): # Added line
-            if re.match(self.tiktok_pattern, message_list[i]): # Added line
-                message_list[i] = re.sub(self.tiktok_pattern, replace_url, message_list[i]) # Added line
+            # Modify the netloc part of the url by adding vx in front of tiktok.com
+            new_netloc = parsed_url.netloc.replace("tiktok.com", "vxtiktok.com") # Added line
+
+            # Rebuild the url with the new netloc and store it in a string
+            new_url = urllib.parse.urlunparse(parsed_url._replace(netloc=new_netloc)) # Added line
+        except ValueError: # Added line
+            # If the message content is not a valid url, return
+            return # Added line
 
         # Get the user object from the message
         user = message.author
@@ -77,12 +77,7 @@ class TikTokCog(commands.Cog):
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
         # Create a formatted message with the custom emoji, the user's mention, and the modified url
-        formatted_message = f"{emoji} {user.mention} shared this TikTok!\n" # Modified line
-        for part in message_list: # Added line
-            if re.match(self.tiktok_pattern, part): # Added line
-                formatted_message += part + "\n" # Added line
-            else: # Added line
-                formatted_message += "Message: " + part + "\n" # Added line
+        formatted_message = f"{emoji} {user.mention} shared this TikTok!\n{new_url}" # Modified line
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
