@@ -4,6 +4,7 @@ import requests
 from PIL import Image, ImageOps, ImageDraw # Import PIL library
 from redbot.core import commands
 import discord # Import discord library
+import io # Import io library
 
 class TikTokCog(commands.Cog):
     """A custom cog that reposts tiktok urls"""
@@ -56,7 +57,7 @@ class TikTokCog(commands.Cog):
         image = Image.composite(image, Image.new("RGBA", image.size), mask)
 
         # Create a discord.File object from the avatar image in memory
-        file = discord.File(image, filename="avatar_cropped.png") # Simplified line
+        file = discord.File(io.BytesIO(image.tobytes()), filename="avatar_cropped.png") # Modified line
 
         # Get the guild object from the message
         guild = message.guild
