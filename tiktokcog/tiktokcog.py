@@ -34,8 +34,8 @@ class TikTokCog(commands.Cog):
         # Get the avatar URL from the user object
         avatar_url = user.avatar.url
 
-        # Create an asset object from the avatar URL
-        asset = discord.Asset(self.bot._connection, url=avatar_url) # Modified line
+        # Create an asset object from the avatar URL and the "avatar" key
+        asset = discord.Asset(self.bot._connection, url=avatar_url, key="avatar") # Modified line
 
         # Resize the asset to 128x128 pixels
         asset = asset.resize(128, 128) # Modified line
