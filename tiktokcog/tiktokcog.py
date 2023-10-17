@@ -11,7 +11,7 @@ class TikTokCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # Compile the tiktok pattern only once
-        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)") # Unmodified line
+        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com(?<=\/)(.+)(.*)") # Modified line
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -24,13 +24,13 @@ class TikTokCog(commands.Cog):
             return
 
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
-        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6) # Unmodified line
+        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com" + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
 
         # Get the memo from the message content using the memo group of the tiktok pattern
         memo = tiktok_url.group(1) # Unmodified line
 
         # Remove the memo from the new url using a regular expression that matches anything before a slash or a space
-        new_url = re.sub(r".*(?=\/|\s)", "", new_url) # Added line
+        new_url = re.sub(r".*(?=\/|\s)", "", new_url) # Unmodified line
 
         # Get the user object from the message
         user = message.author
