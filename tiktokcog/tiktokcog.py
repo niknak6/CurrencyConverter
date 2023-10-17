@@ -69,10 +69,13 @@ class TikTokCog(commands.Cog):
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
         # Extract the memo text from the message content by removing everything after https:// or http:// (including it)
-        memo_text = re.sub(r"(?i)https?://.*", "", message.content).strip() # Modified line
+        memo_text = re.sub(r"(?i)https?://.*", "", message.content).strip()
+
+        # Remove the memo text from the message content by replacing it with an empty string
+        message_content = message.content.replace(memo_text, "").strip() # Modified line
 
         # Create a formatted message with the custom emoji, the mention, modified url and memo text
-        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}\nMemo: {memo_text}" # Modified line
+        formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}\nMemo: {memo_text}" 
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
