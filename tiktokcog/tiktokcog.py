@@ -24,7 +24,7 @@ class TikTokCog(commands.Cog):
             return
 
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
-        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6)
+        new_url = (tiktok_url.group(1) or "") + (tiktok_url.group(2) or "") + (tiktok_url.group(3) or "") + "vxtiktok.com/" + (tiktok_url.group(5) or "") + (tiktok_url.group(6) or "") # Modified line
 
         # Get the user object from the message
         user = message.author
