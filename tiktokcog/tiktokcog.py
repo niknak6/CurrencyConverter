@@ -26,6 +26,9 @@ class TikTokCog(commands.Cog):
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
         new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
 
+        # Get the memo from the message content using the memo group of the tiktok pattern
+        memo = tiktok_url.group(1) # Added line
+
         # Get the user object from the message
         user = message.author
 
@@ -68,8 +71,8 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
-        # Create a formatted message with the custom emoji, the mention and modified url
-        formatted_message = f"{emoji} {user.mention} shared this TikTok video. {new_url}" # Modified line
+        # Create a formatted message with the custom emoji, the mention, modified url and memo
+        formatted_message = f"{emoji} {user.mention} shared this TikTok video. {new_url} {memo}" # Modified line
 
         # Repost the formatted message and remove the original message
         await message.channel.send(formatted_message)
