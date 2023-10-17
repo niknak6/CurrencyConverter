@@ -72,18 +72,22 @@ class TikTokCog(commands.Cog):
         memo_text = " ".join([part for part in message.content.split() if not part.lower().startswith(("https://", "http://"))])
 
         # Remove any whitespace before https:// or http:// in the message content (this will remove any text before or after the url)
-        message_content = re.sub(r"(?i)\s*(https?://)", r"\1", new_url) # Modified line
+        
+# Modified line: Only keep URL in message_content 
+message_content = " ".join([part for part in new_url.split() if part.lower().startswith(("https://", "http://"))])
 
-        # Create a formatted message with the custom emoji, the mention, modified url and memo text
-        formatted_message = f"Shared by: {emoji} {user.mention}\nMessage: {memo_text}\nLink: {new_url} " # Added whitespace after new_url
+# Create a formatted message with the custom emoji, the mention, modified url and memo text
 
-        # Repost the formatted message and remove the original message
-        await message.channel.send(formatted_message)
-        await message.delete()
+# Modified line: Removed whitespace after new_url 
+formatted_message = f"Shared by: {emoji} {user.mention}\nMessage: {memo_text}\nLink: {message_content}"
 
-        # Delete the custom emoji
-        await emoji.delete()
+# Repost the formatted message and remove the original message
+await message.channel.send(formatted_message)
+await message.delete()
 
-        # Delete the avatar.png and avatar_cropped.png files
-        os.remove("avatar.png")
-        os.remove("avatar_cropped.png")
+# Delete the custom emoji
+await emoji.delete()
+
+# Delete the avatar.png and avatar_cropped.png files
+os.remove("avatar.png")
+os.remove("avatar_cropped.png")
