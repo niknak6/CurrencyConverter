@@ -75,7 +75,9 @@ class TikTokCog(commands.Cog):
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
             # Create a formatted message with the custom emoji, the mention, modified url and memo text
-            formatted_message = f"Shared by: {emoji} {user.mention}\nMessage: {memo_text}\nLink: {message_content}"
+
+            # Modified line: Check if memo_text is empty and hide Message: field accordingly 
+            formatted_message = f"Shared by: {emoji} {user.mention}\n" + (f"Message: {memo_text}\n" if memo_text else "") + f"Link: {message_content}"
 
             # Repost the formatted message and remove the original message
             await message.channel.send(formatted_message)
