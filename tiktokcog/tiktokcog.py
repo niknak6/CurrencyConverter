@@ -2,7 +2,7 @@ import os
 import random
 import re
 import requests
-from PIL import Image, ImageOps, ImageDraw # Import PIL library
+from PIL import Image, ImageDraw # Import only the necessary modules from PIL library
 from redbot.core import commands
 
 class TikTokCog(commands.Cog):
@@ -10,7 +10,6 @@ class TikTokCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        # Compile the tiktok pattern only once
         self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)")
 
     @commands.Cog.listener()
@@ -32,11 +31,8 @@ class TikTokCog(commands.Cog):
         # Remove any whitespace before https:// or http:// in the message content (this will remove any text before or after the url)
         message_content = " ".join([part for part in new_url.split() if part.lower().startswith(("https://", "http://"))])
 
-        # Get the user object from the message
-        user = message.author
-
-        # Get the avatar URL from the user object
-        avatar_url = user.avatar.url
+        user = message.author # Get the user who sent the message
+        avatar_url = user.avatar.url # Get the avatar URL of the user
 
         # Download the image from the URL and save it as avatar.png
         response = requests.get(avatar_url)
@@ -64,8 +60,7 @@ class TikTokCog(commands.Cog):
         # Save the cropped image as avatar_cropped.png
         image.save("avatar_cropped.png")
 
-        # Get the guild object from the message
-        guild = message.guild
+        guild = message.guild # Get the guild where the message was sent
 
         # Open the cropped image file in binary mode
         with open("avatar_cropped.png", "rb") as image:
@@ -74,9 +69,7 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
-            # Create a formatted message with the custom emoji, the mention, modified url and memo text
-
-            # Modified line: Check if memo_text is empty and hide Message: field accordingly 
+            # Check if memo_text is empty and hide Message: field accordingly 
             formatted_message = f"Shared by: {emoji} {user.mention}\n" + (f"Message: {memo_text}\n" if memo_text else "") + f"Link: {message_content}"
 
             # Repost the formatted message and remove the original message
