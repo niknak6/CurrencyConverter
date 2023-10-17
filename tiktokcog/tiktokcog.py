@@ -69,9 +69,6 @@ class TikTokCog(commands.Cog):
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
         # Extract the memo text from the message content by splitting it by whitespace and removing any part that starts with https:// or http:// (including it)
-        memo_text = " ".join([part for part in message.content.split() if not part.lower().startswith(("https://", "http://"))])
-
-        # Remove any whitespace before https:// or http:// in the message content (this will remove any text before or after the url)
         
 # Modified line: Only keep URL in message_content 
 message_content = " ".join([part for part in new_url.split() if part.lower().startswith(("https://", "http://"))])
