@@ -11,7 +11,7 @@ class TikTokCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # Compile the tiktok pattern only once
-        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)")
+        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\*)\.)?tiktok\.com/(ZM\w+)?(.+)(.*)") # Modified line
 
     @commands.Cog.listener()
     async def on_message(self, message):
