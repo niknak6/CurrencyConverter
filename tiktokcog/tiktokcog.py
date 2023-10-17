@@ -11,7 +11,7 @@ class TikTokCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # Compile the tiktok pattern only once
-        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)") # Modified line
+        self.tiktok_pattern = re.compile(r"(?i)(.*?)(https?://)?((\w+)\.)?tiktok.com/(.+)(.*)")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -24,7 +24,13 @@ class TikTokCog(commands.Cog):
             return
 
         # Add vx in front of tiktok.com in the url, while preserving the protocol, subdomain, and path parts
-        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6) # Modified line
+        new_url = tiktok_url.group(1) + tiktok_url.group(2) + tiktok_url.group(3) + "vxtiktok.com/" + tiktok_url.group(5) + tiktok_url.group(6)
+
+        # Extract the memo text from the message content by splitting it by whitespace and removing any part that starts with https:// or http:// (including it)
+        memo_text = " ".join([part for part in message.content.split() if not part.lower().startswith(("https://", "http://"))])
+
+        # Remove any whitespace before https:// or http:// in the message content (this will remove any text before or after the url)
+        message_content = " ".join([part for part in new_url.split() if part.lower().startswith(("https://", "http://"))])
 
         # Get the user object from the message
         user = message.author
@@ -68,26 +74,16 @@ class TikTokCog(commands.Cog):
             emoji_name = f"user_avatar_{random.randint(0, 9999)}"
             emoji = await guild.create_custom_emoji(name=emoji_name, image=image.read())
 
-# Extract the memo text from the message content by splitting it by whitespace and removing any part that starts with https:// or http:// (including it)
-memo_text = " ".join([part for part in message.content.split() if not part.lower().startswith(("https://", "http://"))])
+            # Create a formatted message with the custom emoji, the mention, modified url and memo text
+            formatted_message = f"Shared by: {emoji} {user.mention}\nMessage: {memo_text}\nLink: {message_content}"
 
-# Remove any whitespace before https:// or http:// in the message content (this will remove any text before or after the url)
-message_content = " ".join([part for part in new_url.split() if part.lower().startswith(("https://", "http://"))])
+            # Repost the formatted message and remove the original message
+            await message.channel.send(formatted_message)
+            await message.delete()
 
-# Create a formatted message with the custom emoji, the mention, modified url and memo text
+            # Delete the custom emoji
+            await emoji.delete()
 
-# Modified line: Removed whitespace after new_url 
-formatted_message = f"Shared by: {emoji} {user.mention}\nMessage: {memo_text}\nLink: {message_content}"
-
-# Repost the formatted message and remove the original message
-
-# Corrected indentation: This line should be inside async def on_message(self, message):
-await message.channel.send(formatted_message)
-await message.delete()
-
-# Delete the custom emoji
-await emoji.delete()
-
-# Delete the avatar.png and avatar_cropped.png files
-os.remove("avatar.png")
-os.remove("avatar_cropped.png")
+            # Delete the avatar.png and avatar_cropped.png files
+            os.remove("avatar.png")
+            os.remove("avatar_cropped.png")
