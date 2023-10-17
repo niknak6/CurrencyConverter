@@ -71,8 +71,8 @@ class TikTokCog(commands.Cog):
         # Extract the memo text from the message content by splitting it by whitespace and removing any part that starts with https:// or http:// (including it)
         memo_text = " ".join([part for part in message.content.split() if not part.lower().startswith(("https://", "http://"))])
 
-        # Remove any whitespace before or after https:// or http:// in the message content (this will remove any text before or after the url)
-        message_content = re.sub(r"(?i)\s*(https?://)\s*", r"\1", new_url) # Modified line
+        # Remove any whitespace before https:// or http:// in the message content (this will remove any text before or after the url)
+        message_content = re.sub(r"(?i)\s*(https?://)", r"\1", new_url) # Modified line
 
         # Create a formatted message with the custom emoji, the mention, modified url and memo text
         formatted_message = f"Shared by: {emoji} {user.mention}\nMessage: {memo_text}\nLink: {new_url} " # Added whitespace after new_url
