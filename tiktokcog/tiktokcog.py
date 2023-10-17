@@ -80,6 +80,8 @@ message_content = " ".join([part for part in new_url.split() if part.lower().sta
 formatted_message = f"Shared by: {emoji} {user.mention}\nMessage: {memo_text}\nLink: {message_content}"
 
 # Repost the formatted message and remove the original message
+
+# Corrected indentation: This line should be inside async def on_message(self, message):
 await message.channel.send(formatted_message)
 await message.delete()
 
