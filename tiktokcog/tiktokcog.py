@@ -72,7 +72,7 @@ class TikTokCog(commands.Cog):
         memo_text = re.sub(r"(?i)https?://.*", "", message.content).strip()
 
         # Remove the memo text from the message content by replacing it with an empty string
-        message_content = message.content.replace(memo_text, "").strip() # Modified line
+        message_content = re.sub(r"(?i)" + memo_text, "", message.content).strip() # Modified line
 
         # Create a formatted message with the custom emoji, the mention, modified url and memo text
         formatted_message = f"{emoji} {user.mention} originally shared this embedded TikTok video.\n{new_url}\nMemo: {memo_text}" 
