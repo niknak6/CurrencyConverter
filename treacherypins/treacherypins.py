@@ -13,9 +13,15 @@ class TreacheryPins(commands.Cog):
     # Initialize the cog with the bot instance
     def __init__(self, bot):
         self.bot = bot
-        # Load the data from the file
-        with open(data_file, "r") as f:
-            self.data = json.load(f)
+        # Open the file with the mode "w+"
+        with open(data_file, "w+") as f:
+            # Check if the file is empty
+            if f.tell() == 0:
+                # If yes, write an empty JSON object to the file
+                json.dump({}, f)
+            else:
+                # If no, load the data from the file
+                self.data = json.load(f)
 
     # Create a command to create a pinboard message in the current channel
     @commands.command()
