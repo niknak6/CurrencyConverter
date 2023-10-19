@@ -42,7 +42,7 @@ class TreacheryPins(commands.Cog):
             # Pin the message
             await pinboard.pin()
             # Save the message id in the dictionary by channel id
-            self.data["guilds"][str(ctx.guild.id)]["pinboards"][str(ctx.channel.id)] = pinboard.id
+            self.data["guilds"].setdefault(str(ctx.guild.id), {})["pinboards"][str(ctx.channel.id)] = pinboard.id # Use dict.setdefault method to avoid KeyError 
             # Save the data to the file
             with open(data_file, "w") as f:
                 json.dump(self.data, f)
@@ -79,7 +79,7 @@ class TreacheryPins(commands.Cog):
     async def pinboardemoji(self, ctx, emoji: str): # Change type annotation to str 
         """Set the pinboard emoji for the current guild."""
         # Save the emoji in the dictionary by guild id
-        self.data["guilds"][str(ctx.guild.id)]["pinboard_emoji"] = emoji 
+        self.data["guilds"].setdefault(str(ctx.guild.id), {})["pinboard_emoji"] = emoji  # Use dict.setdefault method to avoid KeyError 
         # Save the data to the file 
         with open(data_file, "w") as f: 
             json.dump(self.data, f) 
