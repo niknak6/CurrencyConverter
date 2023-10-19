@@ -1,11 +1,11 @@
-# Import discord, json, os and the commands extension
+# Import discord, pickle, os and the commands extension
 import discord
-import json
+import pickle
 import os
 from redbot.core import commands
 
 # Define a variable to store the file name
-data_file = "pinboard_data.json"
+data_file = "pinboard_data.pkl"
 
 # Create a class for the cog
 class TreacheryPins(commands.Cog):
@@ -20,12 +20,12 @@ class TreacheryPins(commands.Cog):
             f.seek(0)
             # Try to load the data from the file
             try:
-                self.data = json.load(f)
-            except json.decoder.JSONDecodeError:
-                # If the file is not a valid JSON file, write an empty JSON object with the guilds key to the file
-                json.dump({"guilds": {}}, f)
+                self.data = pickle.load(f)
+            except EOFError:
+                # If the file is empty, write an empty dictionary with the guilds key to the file
+                pickle.dump({"guilds": {}}, f)
                 # Load the data from the file again
-                self.data = json.load(f)
+                self.data = pickle.load(f)
 
     # Create a command to create a pinboard message in the current channel
     @commands.command()
@@ -45,7 +45,7 @@ class TreacheryPins(commands.Cog):
             self.data["guilds"].setdefault(str(ctx.guild.id), {})["pinboards"][str(ctx.channel.id)] = pinboard.id # Use dict.setdefault method to avoid KeyError 
             # Save the data to the file
             with open(data_file, "w") as f:
-                json.dump(self.data, f)
+                pickle.dump(self.data, f)
             # Send a confirmation message
             await ctx.send("Pinboard message created and pinned.")
 
@@ -66,7 +66,7 @@ class TreacheryPins(commands.Cog):
             del self.data["guilds"][str(ctx.guild.id)]["pinboards"][str(ctx.channel.id)]
             # Save the data to the file
             with open(data_file, "w") as f:
-                json.dump(self.data, f)
+                pickle.dump(self.data, f)
             # Send a confirmation message
             await ctx.send("Pinboard message removed and unpinned.")
         else:
@@ -82,7 +82,7 @@ class TreacheryPins(commands.Cog):
         self.data["guilds"].setdefault(str(ctx.guild.id), {})["pinboard_emoji"] = emoji  # Use dict.setdefault method to avoid KeyError 
         # Save the data to the file 
         with open(data_file, "w") as f: 
-            json.dump(self.data, f) 
+            pickle.dump(self.data, f) 
         # Send a confirmation message 
         await ctx.send(f"Pinboard emoji set to {emoji}.")
 
