@@ -24,9 +24,9 @@ class TreacheryPins(commands.Cog):
             try:
                 self.data = json.load(f)
             except json.decoder.JSONDecodeError:
-                # If the file is not a valid JSON file, write an empty JSON object to the file
+                # If the file is not a valid JSON file, write an empty JSON object with the guilds key to the file
                 with open(data_file, "w") as f:
-                    json.dump({}, f)
+                    json.dump({"guilds": {}}, f)
                 # Load the data from the file again
                 self.data = json.load(f)
 
