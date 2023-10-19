@@ -125,4 +125,4 @@ class TreacheryPins(commands.Cog):
                             # Edit the pinboard message to add a new line with the description and the message link
                             await pinboard.edit(content=pinboard.content + f"\n{description}: {message.jump_url}")
                             # Send a confirmation message to the user
-                            await user.send("Pin successfully
+                            await user.send("Pin successfully added!")
