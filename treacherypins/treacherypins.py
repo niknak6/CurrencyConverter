@@ -43,8 +43,8 @@ class TreacheryPins(commands.Cog):
             await pinboard.pin()
             # Save the message id in the dictionary by channel id
             self.data["guilds"].setdefault(str(ctx.guild.id), {})["pinboards"][str(ctx.channel.id)] = pinboard.id # Use dict.setdefault method to avoid KeyError 
-            # Save the data to the file
-            with open(data_file, "w") as f:
+            # Save the data to the file using 'wb' mode 
+            with open(data_file, "wb") as f: # Change mode to 'wb'
                 pickle.dump(self.data, f)
             # Send a confirmation message
             await ctx.send("Pinboard message created and pinned.")
@@ -64,8 +64,8 @@ class TreacheryPins(commands.Cog):
             await pinboard.delete()
             # Remove the channel id from the dictionary
             del self.data["guilds"][str(ctx.guild.id)]["pinboards"][str(ctx.channel.id)]
-            # Save the data to the file
-            with open(data_file, "w") as f:
+            # Save the data to the file using 'wb' mode 
+            with open(data_file, "wb") as f:  # Change mode to 'wb'
                 pickle.dump(self.data, f)
             # Send a confirmation message
             await ctx.send("Pinboard message removed and unpinned.")
@@ -80,8 +80,8 @@ class TreacheryPins(commands.Cog):
         """Set the pinboard emoji for the current guild."""
         # Save the emoji in the dictionary by guild id
         self.data["guilds"].setdefault(str(ctx.guild.id), {})["pinboard_emoji"] = emoji  # Use dict.setdefault method to avoid KeyError 
-        # Save the data to the file 
-        with open(data_file, "w") as f: 
+        # Save the data to the file using 'wb' mode 
+        with open(data_file, "wb") as f:  # Change mode to 'wb'
             pickle.dump(self.data, f) 
         # Send a confirmation message 
         await ctx.send(f"Pinboard emoji set to {emoji}.")
