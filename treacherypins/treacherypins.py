@@ -80,28 +80,28 @@ class TreacheryPins(commands.Cog):
                 emoji = self.pinboard_emojis[guild.id]
                 # Check if the reaction emoji matches the pinboard emoji
                 if payload.emoji.name == emoji.strip(":"): # Change comparison to name and strip colons from emoji string 
-                    # Get the user object by id
-                    user = self.bot.get_user(payload.user_id)
-                    # Check if the user is a Member object 
-                    if isinstance(user, discord.Member):  # Add this line 
-                        # Check if the user is not a bot and not an admin 
-                        if not user.bot and not user.guild_permissions.administrator: 
+                    # Fetch the member object by user id 
+                    member = await guild.fetch_member(payload.user_id)  # Add this line 
+                    # Check if the member object is not None 
+                    if member is not None:  # Add this line 
+                        # Check if the member is not a bot and not an admin 
+                        if not member.bot and not member.guild_permissions.administrator: 
                             # Get the message object by id 
                             message = await channel.fetch_message(payload.message_id) 
                             # Get the pinboard message object by id 
                             pinboard = await channel.fetch_message(self.pinboards[channel.id]) 
-                            # Send a prompt message to the user for a description of the message to pin 
-                            prompt = await user.send(f"You reacted to a message with {emoji}. Please provide a description of the message to pin.") 
-                            # Wait for the user's response 
+                            # Send a prompt message to the member for a description of the message to pin 
+                            prompt = await member.send(f"You reacted to a message with {emoji}. Please provide a description of the message to pin.") 
+                            # Wait for the member's response 
                             try: 
-                                response = await self.bot.wait_for("message", check=lambda m: m.author == user and m.channel == prompt.channel, timeout=60) 
+                                response = await self.bot.wait_for("message", check=lambda m: m.author == member and m.channel == prompt.channel, timeout=60) 
                             except asyncio.TimeoutError: 
-                                # If the user does not respond in time, send an error message 
-                                await user.send("You did not provide a description in time. Pin aborted.") 
+                                # If the member does not respond in time, send an error message 
+                                await member.send("You did not provide a description in time. Pin aborted.") 
                             else: 
-                                # If the user responds, get the description from the message content 
+                                # If the member responds, get the description from the message content 
                                 description = response.content 
                                 # Edit the pinboard message to add a new line with the description and the message link 
                                 await pinboard.edit(content=pinboard.content + f"\n{description}: {message.jump_url}") 
-                                # Send a confirmation message to the user 
-                                await user.send("Pin successfully added!")
+                                # Send a confirmation message to the member 
+                                await member.send("Pin successfully added!")
