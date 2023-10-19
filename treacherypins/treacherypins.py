@@ -16,7 +16,7 @@ class TreacheryPins(commands.Cog):
 
     # Create a command to create a pinboard message in the current channel
     @commands.command()
-    @commands.admin()
+    @commands.has_permissions(administrator=True) # Check for Administrator permission
     async def createpinboard(self, ctx):
         """Create a pinboard message in the current channel."""
         # Check if there is already a pinboard message in the current channel
@@ -35,7 +35,7 @@ class TreacheryPins(commands.Cog):
 
     # Create a command to remove the pinboard message from the current channel
     @commands.command()
-    @commands.admin()
+    @commands.has_permissions(administrator=True) # Check for Administrator permission
     async def removepinboard(self, ctx):
         """Remove the pinboard message from the current channel."""
         # Check if there is a pinboard message in the current channel
@@ -56,7 +56,7 @@ class TreacheryPins(commands.Cog):
 
     # Create a command to set the pinboard emoji for the current guild
     @commands.command()
-    @commands.admin()
+    @commands.has_permissions(administrator=True) # Check for Administrator permission
     async def pinboardemoji(self, ctx, emoji: discord.PartialEmoji):
         """Set the pinboard emoji for the current guild."""
         # Save the emoji in the dictionary by guild id
