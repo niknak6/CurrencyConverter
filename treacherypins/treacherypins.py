@@ -81,7 +81,12 @@ class TreacheryPins(commands.Cog):
                 # Check if the reaction emoji matches the pinboard emoji
                 if payload.emoji.name == emoji.strip(":"): # Change comparison to name and strip colons from emoji string 
                     # Fetch the member object by user id 
-                    member = await guild.fetch_member(payload.user_id)  # Add this line 
+                    try: 
+                        member = await guild.fetch_member(payload.user_id)  # Add this line 
+                    except (discord.NotFound, discord.Forbidden, discord.HTTPException) as e: 
+                        # If an exception occurs, print it to the console and return 
+                        print(e) 
+                        return 
                     # Check if the member object is not None 
                     if member is not None:  # Add this line 
                         # Check if the member is not a bot and not an admin 
