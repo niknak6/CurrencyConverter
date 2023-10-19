@@ -21,7 +21,7 @@ class TreacheryPins(commands.Cog):
                 json.dump({}, f)
             else:
                 # If no, load the data from the file
-                self.data = json.load(f)
+                self.data = json.load(f) # Define the data attribute here
 
     # Create a command to create a pinboard message in the current channel
     @commands.command()
