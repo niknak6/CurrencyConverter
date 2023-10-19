@@ -57,7 +57,7 @@ class TreacheryPins(commands.Cog):
     # Create a command to set the pinboard emoji for the current guild
     @commands.command()
     @commands.has_permissions(administrator=True) # Check for Administrator permission
-    async def pinboardemoji(self, ctx, emoji: discord.PartialEmoji):
+    async def pinboardemoji(self, ctx, emoji: str): # Change type annotation to str
         """Set the pinboard emoji for the current guild."""
         # Save the emoji in the dictionary by guild id
         self.pinboard_emojis[ctx.guild.id] = emoji
@@ -79,7 +79,7 @@ class TreacheryPins(commands.Cog):
                 # Get the emoji object by id
                 emoji = self.pinboard_emojis[guild.id]
                 # Check if the reaction emoji matches the pinboard emoji
-                if payload.emoji == emoji:
+                if payload.emoji.name == emoji.strip(":"): # Change comparison to name and strip colons from emoji string 
                     # Get the user object by id
                     user = self.bot.get_user(payload.user_id)
                     # Check if the user is not a bot and not an admin
