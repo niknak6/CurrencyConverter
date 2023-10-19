@@ -1,6 +1,7 @@
-# Import discord, json and the commands extension
+# Import discord, json, os and the commands extension
 import discord
 import json
+import os
 from redbot.core import commands
 
 # Define a variable to store the file name
@@ -13,15 +14,21 @@ class TreacheryPins(commands.Cog):
     # Initialize the cog with the bot instance
     def __init__(self, bot):
         self.bot = bot
-        # Open the file with the mode "w+"
-        with open(data_file, "w+") as f:
-            # Check if the file is empty
-            if f.tell() == 0:
-                # If yes, write an empty JSON object to the file
-                json.dump({}, f)
-            else:
-                # If no, load the data from the file
-                self.data = json.load(f) # Define the data attribute here
+        # Check if the file exists
+        if not os.path.exists(data_file):
+            # If not, create an empty file
+            open(data_file, "w").close()
+        # Open the file with the mode "r"
+        with open(data_file, "r") as f:
+            # Try to load the data from the file
+            try:
+                self.data = json.load(f)
+            except json.decoder.JSONDecodeError:
+                # If the file is not a valid JSON file, write an empty JSON object to the file
+                with open(data_file, "w") as f:
+                    json.dump({}, f)
+                # Load the data from the file again
+                self.data = json.load(f)
 
     # Create a command to create a pinboard message in the current channel
     @commands.command()
@@ -29,7 +36,7 @@ class TreacheryPins(commands.Cog):
     async def createpinboard(self, ctx):
         """Create a pinboard message in the current channel."""
         # Check if there is already a pinboard message in the current channel
-        if ctx.channel.id in self.data["guilds"][str(ctx.guild.id)]["pinboards"]:
+        if ctx.channel.id in self.data["guilds"].get(str(ctx.guild.id), {})["pinboards"]: # Use dict.get method with default value
             # If yes, send an error message
             await ctx.send("There is already a pinboard message in this channel.")
         else:
@@ -51,7 +58,7 @@ class TreacheryPins(commands.Cog):
     async def removepinboard(self, ctx):
         """Remove the pinboard message from the current channel."""
         # Check if there is a pinboard message in the current channel
-        if ctx.channel.id in self.data["guilds"][str(ctx.guild.id)]["pinboards"]:
+        if ctx.channel.id in self.data["guilds"].get(str(ctx.guild.id), {})["pinboards"]: # Use dict.get method with default value
             # If yes, get the message object by id
             pinboard = await ctx.channel.fetch_message(self.data["guilds"][str(ctx.guild.id)]["pinboards"][str(ctx.channel.id)])
             # Unpin the message
@@ -89,7 +96,7 @@ class TreacheryPins(commands.Cog):
         # Get the channel object from the reaction
         channel = reaction.message.channel # Change payload to reaction
         # Check if the channel has a pinboard message
-        if channel.id in self.data["guilds"][str(channel.guild.id)]["pinboards"]:
+        if channel.id in self.data["guilds"].get(str(channel.guild.id), {})["pinboards"]: # Use dict.get method with default value
             # Get the guild object from the channel
             guild = channel.guild # Change payload to channel
             # Check if the guild has a pinboard emoji
@@ -118,4 +125,4 @@ class TreacheryPins(commands.Cog):
                             # Edit the pinboard message to add a new line with the description and the message link
                             await pinboard.edit(content=pinboard.content + f"\n{description}: {message.jump_url}")
                             # Send a confirmation message to the user
-                            await user.send("Pin successfully added!")
+                            await user.send("Pin successfully
