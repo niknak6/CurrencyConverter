@@ -116,12 +116,12 @@ class TreacheryPins(commands.Cog):
          except Exception as e:  # Added this clause to handle other exceptions 
              self.bot.logger.error(e)  # Log the error message 
              return await channel.send("An error occurred while waiting for your response. Pin cancelled.") 
-         # Fetch the pinboard message 
-         try: 
-             pinboard_message = await channel.fetch_message(pinboard) 
-         except discord.NotFound: 
-             return await channel.send("The pinboard message could not be found. It may have been deleted manually.") 
-         # Edit the pinboard message with the new pin
+         # Fetch the pinboard message
+        try:
+            pinboard_message = await channel.fetch_message(pinboard)
+        except discord.NotFound:
+            return await channel.send("The pinboard message could not be found. It may have been deleted manually.")
+        # Edit the pinboard message with the new pin
         description = response.content
         link = message.jump_url
         content = pinboard_message.content + f"\n{description}" # Changed this line to make the description hyperlinked
