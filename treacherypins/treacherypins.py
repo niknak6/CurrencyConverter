@@ -1,125 +1,94 @@
-# Import discord, pickle, os and the commands extension
+# treacherypins.py
+
+from redbot.core import commands, checks, Config
 import discord
-import pickle
-import os
-from redbot.core import commands
 
-# Define a variable to store the file name
-data_file = "pinboard_data.pkl"
-
-# Create a class for the cog
 class TreacheryPins(commands.Cog):
     """A cog that allows users to pin messages to a channel-specific pinboard."""
 
-    # Initialize the cog with the bot instance
     def __init__(self, bot):
         self.bot = bot
-        # Open the file with the mode "a+"
-        with open(data_file, "a+") as f:
-            # Move the file pointer to the beginning
-            f.seek(0)
-            # Try to load the data from the file
-            try:
-                self.data = pickle.load(f)
-            except EOFError:
-                # If the file is empty, write an empty dictionary with the guilds key to the file
-                pickle.dump({"guilds": {}}, f)
-                # Load the data from the file again
-                self.data = pickle.load(f)
+        self.config = Config.get_conf(self, identifier=1234567890)
+        # Register the default settings for each guild
+        self.config.register_guild(
+            pinboard=None, # The message ID of the pinboard
+            emoji="📌" # The emoji used to react and pin messages
+        )
 
-    # Create a command to create a pinboard message in the current channel
-    @commands.command()
-    @commands.has_permissions(administrator=True) # Check for Administrator permission
-    async def createpinboard(self, ctx):
-        """Create a pinboard message in the current channel."""
-        # Check if there is already a pinboard message in the current channel
-        if ctx.channel.id in self.data["guilds"].get(str(ctx.guild.id), {})["pinboards"]: # Use dict.get method with default value
-            # If yes, send an error message
-            await ctx.send("There is already a pinboard message in this channel.")
-        else:
-            # If no, create a new message with the title "Treachery Pin Board"
-            pinboard = await ctx.send("Treachery Pin Board")
-            # Pin the message
-            await pinboard.pin()
-            # Save the message id in the dictionary by channel id
-            self.data["guilds"].setdefault(str(ctx.guild.id), {})["pinboards"][str(ctx.channel.id)] = pinboard.id # Use dict.setdefault method to avoid KeyError 
-            # Save the data to the file using 'wb' mode 
-            with open(data_file, "wb") as f: # Change mode to 'wb'
-                pickle.dump(self.data, f)
-            # Send a confirmation message
-            await ctx.send("Pinboard message created and pinned.")
+    @commands.group()
+    @checks.admin_or_permissions(administrator=True)
+    async def treacherypins(self, ctx):
+        """Manage the settings for the treacherypins cog."""
+        pass
 
-    # Create a command to remove the pinboard message from the current channel
-    @commands.command()
-    @commands.has_permissions(administrator=True) # Check for Administrator permission
-    async def removepinboard(self, ctx):
-        """Remove the pinboard message from the current channel."""
-        # Check if there is a pinboard message in the current channel
-        if ctx.channel.id in self.data["guilds"].get(str(ctx.guild.id), {})["pinboards"]: # Use dict.get method with default value
-            # If yes, get the message object by id
-            pinboard = await ctx.channel.fetch_message(self.data["guilds"][str(ctx.guild.id)]["pinboards"][str(ctx.channel.id)])
-            # Unpin the message
-            await pinboard.unpin()
-            # Delete the message
-            await pinboard.delete()
-            # Remove the channel id from the dictionary
-            del self.data["guilds"][str(ctx.guild.id)]["pinboards"][str(ctx.channel.id)]
-            # Save the data to the file using 'wb' mode 
-            with open(data_file, "wb") as f:  # Change mode to 'wb'
-                pickle.dump(self.data, f)
-            # Send a confirmation message
-            await ctx.send("Pinboard message removed and unpinned.")
-        else:
-            # If no, send an error message
-            await ctx.send("There is no pinboard message in this channel.")
+    @treacherypins.command(name="createpinboard")
+    async def create_pinboard(self, ctx):
+        """Create a pinboard message in the current channel and pin it."""
+        # Check if there is already a pinboard in this channel
+        pinboard = await self.config.guild(ctx.guild).pinboard()
+        if pinboard is not None:
+            return await ctx.send("There is already a pinboard in this channel. Use `removepinboard` to delete it first.")
+        # Create a new message with the title "Treachery Pin Board"
+        message = await ctx.send("Treachery Pin Board")
+        # Pin the message
+        await message.pin()
+        # Save the message ID as the pinboard for this channel
+        await self.config.guild(ctx.guild).pinboard.set(message.id)
+        # Notify the user that the pinboard has been created
+        await ctx.send("The pinboard has been created and pinned in this channel.")
 
-    # Create a command to set the pinboard emoji for the current guild
-    @commands.command()
-    @commands.has_permissions(administrator=True) # Check for Administrator permission
-    async def pinboardemoji(self, ctx, emoji: str): # Change type annotation to str 
-        """Set the pinboard emoji for the current guild."""
-        # Save the emoji in the dictionary by guild id
-        self.data["guilds"].setdefault(str(ctx.guild.id), {})["pinboard_emoji"] = emoji  # Use dict.setdefault method to avoid KeyError 
-        # Save the data to the file using 'wb' mode 
-        with open(data_file, "wb") as f:  # Change mode to 'wb'
-            pickle.dump(self.data, f) 
-        # Send a confirmation message 
-        await ctx.send(f"Pinboard emoji set to {emoji}.")
+    @treacherypins.command(name="removepinboard")
+    async def remove_pinboard(self, ctx):
+        """Remove the pinboard message from the current channel and unpin it."""
+        # Check if there is a pinboard in this channel
+        pinboard = await self.config.guild(ctx.guild).pinboard()
+        if pinboard is None:
+            return await ctx.send("There is no pinboard in this channel. Use `createpinboard` to create one.")
+        # Fetch the message with the pinboard ID
+        try:
+            message = await ctx.channel.fetch_message(pinboard)
+        except discord.NotFound:
+            return await ctx.send("The pinboard message could not be found. It may have been deleted manually.")
+        # Unpin the message
+        await message.unpin()
+        # Delete the message
+        await message.delete()
+        # Clear the pinboard setting for this channel
+        await self.config.guild(ctx.guild).pinboard.clear()
+        # Notify the user that the pinboard has been removed
+        await ctx.send("The pinboard has been removed and unpinned from this channel.")
 
-    # Create a listener for reaction add events 
-    @commands.Cog.listener() 
-    async def on_reaction_add(self, reaction, user):  # Change event name to on_reaction_add 
-        """Handle reactions to messages.""" 
-        # Get the channel object from the reaction 
-        channel = reaction.message.channel  # Change payload to reaction 
-        # Check if the channel has a pinboard message 
-        if channel.id in self.data["guilds"].get(str(channel.guild.id), {})["pinboards"]:  # Use dict.get method with default value 
-            # Get the guild object from the channel 
-            guild = channel.guild  # Change payload to channel 
-            # Check if the guild has a pinboard emoji 
-            if guild.id in self.data["guilds"]: 
-                # Get the emoji object by name 
-                emoji = self.data["guilds"][str(guild.id)]["pinboard_emoji"]  # Change this line 
-                # Check if the reaction emoji matches the pinboard emoji 
-                if reaction.emoji.name == emoji.strip(":"):  # Change payload to reaction 
-                    # Check if the user is not a bot and not an admin 
-                    if not user.bot and not user.guild_permissions.administrator if user else False:  # Use user object directly and handle DM case
-                        # Get the message object from the reaction 
-                        message = reaction.message  # Change payload to reaction 
-                        # Get the pinboard message object by id 
-                        pinboard = await channel.fetch_message(self.data["guilds"][str(channel.guild.id)]["pinboards"][str(channel.id)]) 
-                        # Send a prompt message to the user for a description of the message to pin 
-                        prompt = await user.send(f"You reacted to a message with {emoji}. Please provide a description of the message to pin.") 
-                        # Wait for the user's response 
-                        try: 
-                            response = await self.bot.wait_for("message", check=lambda m: m.author == user and m.channel == prompt.channel, timeout=60) 
-                        except asyncio.TimeoutError: 
-                            # If the user does not respond in time, send an error message 
-                            await user.send("You did not provide a description in time. Pin aborted.") 
-                        else: 
-                            # If the user responds, get the description from the message content 
-                            description = response.content 
-                            # Edit the pinboard message to add a new line with the description and the message link 
-                            await pinboard.edit(content=pinboard.content + f"\n{description}: {message.jump_url}") 
-                            # Send a confirmation message to the user
-                            await user.send("Pin successfully added!")
+    @treacherypins.command(name="pinboardemoji")
+    async def set_pinboard_emoji(self, ctx, emoji: str):
+        """Set the emoji used to react and pin messages to the pinboard. Default is 📌."""
+        # Check if the emoji is valid
+        try:
+            await ctx.message.add_reaction(emoji)
+            await ctx.message.remove_reaction(emoji, ctx.me)
+        except discord.HTTPException:
+            return await ctx.send("That is not a valid emoji. Please use a standard or custom emoji.")
+        # Save the emoji as the setting for this guild
+        await self.config.guild(ctx.guild).emoji.set(emoji)
+        # Notify the user that the emoji has been changed
+        await ctx.send(f"The emoji used to react and pin messages has been changed to {emoji}.")
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        """Handle reactions to messages and add pins to the pinboard."""
+        # Ignore reactions from bots
+        if payload.member.bot:
+            return
+        # Ignore reactions in DMs
+        if not payload.guild_id:
+            return
+        # Get the guild and channel objects
+        guild = self.bot.get_guild(payload.guild_id)
+        channel = guild.get_channel(payload.channel_id)
+        # Check if there is a pinboard in this channel
+        pinboard = await self.config.guild(guild).pinboard()
+        if pinboard is None:
+            return
+        # Check if the reaction emoji matches the setting for this guild
+        emoji = await self.config.guild(guild).emoji()
+        if str(payload.emoji) != emoji:
+            return
