@@ -14,14 +14,24 @@ class TreacheryPins(commands.Cog):
         }
         self.config.register_guild(**default_guild)
 
-    @commands.command()
+    @commands.group()
     @checks.admin_or_permissions(administrator=True)
-    async def createpinboard(self, ctx):
+    async def pinboard(self, ctx):
+        """Manage the pinboard settings for this guild."""
+        # Check if the subcommand is invoked
+        if ctx.invoked_subcommand is None:
+            # Show the current settings for this guild
+            pinboard = await self.config.guild(ctx.guild).pinboard()
+            emoji = await self.config.guild(ctx.guild).emoji()
+            await ctx.send(f"The current pinboard settings are:\nPinboard message ID: {pinboard}\nEmoji: {emoji}")
+
+    @pinboard.command(name="create")
+    async def create_pinboard(self, ctx):
         """Create a pinboard message in the current channel and pin it."""
         # Check if there is already a pinboard in this channel
         pinboard = await self.config.guild(ctx.guild).pinboard()
         if pinboard is not None:
-            return await ctx.send("There is already a pinboard in this channel. Use `removepinboard` to delete it first.")
+            return await ctx.send("There is already a pinboard in this channel. Use `pinboard remove` to delete it first.")
         # Create a new message with the title "Treachery Pin Board"
         message = await ctx.send("Treachery Pin Board")
         # Pin the message
@@ -31,14 +41,13 @@ class TreacheryPins(commands.Cog):
         # Notify the user that the pinboard has been created
         await ctx.send("The pinboard has been created and pinned in this channel.")
 
-    @commands.command()
-    @checks.admin_or_permissions(administrator=True)
-    async def removepinboard(self, ctx):
+    @pinboard.command(name="remove")
+    async def remove_pinboard(self, ctx):
         """Remove the pinboard message from the current channel and unpin it."""
         # Check if there is a pinboard in this channel
         pinboard = await self.config.guild(ctx.guild).pinboard()
         if pinboard is None:
-            return await ctx.send("There is no pinboard in this channel. Use `createpinboard` to create one.")
+            return await ctx.send("There is no pinboard in this channel. Use `pinboard create` to create one.")
         # Fetch the message with the pinboard ID
         try:
             message = await ctx.channel.fetch_message(pinboard)
@@ -53,9 +62,8 @@ class TreacheryPins(commands.Cog):
         # Notify the user that the pinboard has been removed
         await ctx.send("The pinboard has been removed and unpinned from this channel.")
 
-    @commands.command()
-    @checks.admin_or_permissions(administrator=True)
-    async def pinboardemoji(self, ctx, emoji: discord.Emoji):
+    @pinboard.command(name="emoji")
+    async def set_pinboard_emoji(self, ctx, emoji: discord.Emoji):
         """Set the emoji used to react and pin messages to the pinboard. Default is 📌."""
         # Save the emoji as the setting for this guild
         await self.config.guild(ctx.guild).emoji.set(str(emoji))
