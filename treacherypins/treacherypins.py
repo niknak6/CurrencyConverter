@@ -1,5 +1,3 @@
-# treacherypins.py
-
 from redbot.core import commands, checks, Config
 import discord
 
@@ -10,10 +8,11 @@ class TreacheryPins(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1234567890)
         # Register the default settings for each guild
-        self.config.register_guild(
-            pinboard=None, # The message ID of the pinboard
-            emoji="📌" # The emoji used to react and pin messages
-        )
+        default_guild = {
+            "pinboard": None, # The message ID of the pinboard
+            "emoji": "📌" # The emoji used to react and pin messages
+        }
+        self.config.register_guild(**default_guild)
 
     @commands.command()
     @checks.admin_or_permissions(administrator=True)
@@ -56,33 +55,21 @@ class TreacheryPins(commands.Cog):
 
     @commands.command()
     @checks.admin_or_permissions(administrator=True)
-    async def pinboardemoji(self, ctx, emoji: str):
+    async def pinboardemoji(self, ctx, emoji: discord.Emoji):
         """Set the emoji used to react and pin messages to the pinboard. Default is 📌."""
-        # Check if the emoji is valid
-        try:
-            await ctx.message.add_reaction(emoji)
-            await ctx.message.remove_reaction(emoji, ctx.me)
-        except discord.HTTPException:
-            return await ctx.send("That is not a valid emoji. Please use a standard or custom emoji.")
         # Save the emoji as the setting for this guild
-        await self.config.guild(ctx.guild).emoji.set(emoji)
+        await self.config.guild(ctx.guild).emoji.set(str(emoji))
         # Notify the user that the emoji has been changed
         await ctx.send(f"The emoji used to react and pin messages has been changed to {emoji}.")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         """Handle reactions to messages and add pins to the pinboard."""
-        # Ignore reactions from bots
-        if payload.member.bot:
-            return
-         # Get the user object from the payload 
-         user = self.bot.get_user(payload.user_id)  # Changed from payload.member 
-         if user is None: 
+         # Ignore reactions from bots or DMs 
+         if payload.member is None or payload.member.bot: 
              return 
          # Get the guild and channel objects 
-         guild = self.bot.get_guild(payload.guild_id) 
-         if guild is None: 
-             return 
+         guild = payload.member.guild 
          channel = guild.get_channel(payload.channel_id) 
          if channel is None: 
              return 
@@ -103,12 +90,12 @@ class TreacheryPins(commands.Cog):
          if message.id == pinboard: 
              return 
          # Prompt the user for a description of the message to pin 
-         await channel.send(f"{user.mention}, please provide a description of the message you want to pin.")  # Changed from payload.member.mention 
+         await channel.send(f"{payload.member.mention}, please provide a description of the message you want to pin.")  
          # Wait for the user's response 
          try: 
              response = await self.bot.wait_for( 
                  "message", 
-                 check=lambda m: m.author == user and m.channel == channel,  # Changed from payload.member 
+                 check=lambda m: m.author == payload.member and m.channel == channel,  
                  timeout=30.0, 
              ) 
          except asyncio.TimeoutError: 
