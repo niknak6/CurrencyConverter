@@ -85,38 +85,38 @@ class TreacheryPins(commands.Cog):
         pinboard = await self.config.guild(guild).pinboard()
         if pinboard is None:
             return
-         # Check if the reaction emoji matches the setting for this guild  <--- Added this part 
+         # Check if the reaction emoji matches the setting for this guild 
          emoji = await self.config.guild(guild).emoji() 
          if str(payload.emoji) != emoji: 
              return
-        # Fetch the message that was reacted to
-        try:
-            message = await channel.fetch_message(payload.message_id)
-        except discord.NotFound:
-            return
-        # Check if the message is not the pinboard message
-        if message.id == pinboard:
-            return
-        # Prompt the reactor for a description of the message to pin
-        await channel.send(f"{payload.member.mention}, please provide a description of the message you want to pin.")
-        # Wait for the reactor's response
-        try:
-            response = await self.bot.wait_for(
-                "message",
-                check=lambda m: m.author == payload.member and m.channel == channel,
-                timeout=30.0,
-            )
-        except asyncio.TimeoutError:
-            return await channel.send("You did not provide a description in time. Pin cancelled.")
-        # Fetch the pinboard message
-        try:
-            pinboard_message = await channel.fetch_message(pinboard)
-        except discord.NotFound:
-            return await channel.send("The pinboard message could not be found. It may have been deleted manually.")
-        # Edit the pinboard message with the new pin
-        description = response.content
-        link = message.jump_url
-        content = pinboard_message.content + f"\n{description} - {link}"
-        await pinboard_message.edit(content=content)
-        # Notify the reactor that the pin has been added
-        await channel.send("Pin successfully added!")
+         # Fetch the message that was reacted to 
+         try: 
+             message = await channel.fetch_message(payload.message_id) 
+         except discord.NotFound: 
+             return 
+         # Check if the message is not the pinboard message 
+         if message.id == pinboard: 
+             return 
+         # Prompt the reactor for a description of the message to pin 
+         await channel.send(f"{payload.member.mention}, please provide a description of the message you want to pin.") 
+         # Wait for the reactor's response 
+         try: 
+             response = await self.bot.wait_for( 
+                 "message", 
+                 check=lambda m: m.author == payload.member and m.channel == channel, 
+                 timeout=30.0, 
+             ) 
+         except asyncio.TimeoutError: 
+             return await channel.send("You did not provide a description in time. Pin cancelled.") 
+         # Fetch the pinboard message 
+         try: 
+             pinboard_message = await channel.fetch_message(pinboard) 
+         except discord.NotFound: 
+             return await channel.send("The pinboard message could not be found. It may have been deleted manually.") 
+         # Edit the pinboard message with the new pin 
+         description = response.content 
+         link = message.jump_url 
+         content = pinboard_message.content + f"\n{description} - {link}" 
+         await pinboard_message.edit(content=content) 
+         # Notify the reactor that the pin has been added 
+         await channel.send("Pin successfully added!")
