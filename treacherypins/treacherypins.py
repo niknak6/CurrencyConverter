@@ -75,16 +75,21 @@ class TreacheryPins(commands.Cog):
         # Ignore reactions from bots
         if payload.member.bot:
             return
-        # Ignore reactions in DMs
-        if not payload.guild_id:
-            return
-        # Get the guild and channel objects
-        guild = self.bot.get_guild(payload.guild_id)
-        channel = guild.get_channel(payload.channel_id)
-        # Check if there is a pinboard in this channel
-        pinboard = await self.config.guild(guild).pinboard()
-        if pinboard is None:
-            return
+         # Get the user object from the payload 
+         user = self.bot.get_user(payload.user_id)  # Changed from payload.member 
+         if user is None: 
+             return 
+         # Get the guild and channel objects 
+         guild = self.bot.get_guild(payload.guild_id) 
+         if guild is None: 
+             return 
+         channel = guild.get_channel(payload.channel_id) 
+         if channel is None: 
+             return 
+         # Check if there is a pinboard in this channel 
+         pinboard = await self.config.guild(guild).pinboard() 
+         if pinboard is None: 
+             return 
          # Check if the reaction emoji matches the setting for this guild 
          emoji = await self.config.guild(guild).emoji() 
          if str(payload.emoji) != emoji: 
@@ -97,17 +102,20 @@ class TreacheryPins(commands.Cog):
          # Check if the message is not the pinboard message 
          if message.id == pinboard: 
              return 
-         # Prompt the reactor for a description of the message to pin 
-         await channel.send(f"{payload.member.mention}, please provide a description of the message you want to pin.") 
-         # Wait for the reactor's response 
+         # Prompt the user for a description of the message to pin 
+         await channel.send(f"{user.mention}, please provide a description of the message you want to pin.")  # Changed from payload.member.mention 
+         # Wait for the user's response 
          try: 
              response = await self.bot.wait_for( 
                  "message", 
-                 check=lambda m: m.author == payload.member and m.channel == channel, 
+                 check=lambda m: m.author == user and m.channel == channel,  # Changed from payload.member 
                  timeout=30.0, 
              ) 
          except asyncio.TimeoutError: 
              return await channel.send("You did not provide a description in time. Pin cancelled.") 
+         except Exception as e:  # Added this clause to handle other exceptions 
+             self.bot.logger.error(e)  # Log the error message 
+             return await channel.send("An error occurred while waiting for your response. Pin cancelled.") 
          # Fetch the pinboard message 
          try: 
              pinboard_message = await channel.fetch_message(pinboard) 
@@ -117,6 +125,10 @@ class TreacheryPins(commands.Cog):
          description = response.content 
          link = message.jump_url 
          content = pinboard_message.content + f"\n{description} - {link}" 
+         # Check if the content is too long for a single message 
+         if len(content) > 2000:  # Added this clause to handle length limit 
+             # Truncate the content to fit the limit 
+             content = content[:2000]  # You can also use other methods to handle long content, such as creating a new message or using a paginator 
          await pinboard_message.edit(content=content) 
-         # Notify the reactor that the pin has been added 
+         # Notify the user that the pin has been added 
          await channel.send("Pin successfully added!")
