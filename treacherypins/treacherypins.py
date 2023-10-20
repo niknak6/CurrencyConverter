@@ -72,7 +72,7 @@ class TreacheryPins(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        """Handle reactions to messages and add pins to the pinboard."""
+         """Handle reactions to messages and add pins to the pinboard."""
          # Ignore reactions from bots or DMs 
          if payload.member is None or payload.member.bot: 
              return 
