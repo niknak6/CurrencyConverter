@@ -15,14 +15,9 @@ class TreacheryPins(commands.Cog):
             emoji="📌" # The emoji used to react and pin messages
         )
 
-    @commands.group()
+    @commands.command() # Changed from @commands.group()
     @checks.admin_or_permissions(administrator=True)
-    async def treacherypins(self, ctx):
-        """Manage the settings for the treacherypins cog."""
-        pass
-
-    @treacherypins.command(name="createpinboard")
-    async def create_pinboard(self, ctx):
+    async def createpinboard(self, ctx):
         """Create a pinboard message in the current channel and pin it."""
         # Check if there is already a pinboard in this channel
         pinboard = await self.config.guild(ctx.guild).pinboard()
@@ -37,8 +32,9 @@ class TreacheryPins(commands.Cog):
         # Notify the user that the pinboard has been created
         await ctx.send("The pinboard has been created and pinned in this channel.")
 
-    @treacherypins.command(name="removepinboard")
-    async def remove_pinboard(self, ctx):
+    @commands.command() # Added this decorator
+    @checks.admin_or_permissions(administrator=True)
+    async def removepinboard(self, ctx):
         """Remove the pinboard message from the current channel and unpin it."""
         # Check if there is a pinboard in this channel
         pinboard = await self.config.guild(ctx.guild).pinboard()
@@ -58,8 +54,9 @@ class TreacheryPins(commands.Cog):
         # Notify the user that the pinboard has been removed
         await ctx.send("The pinboard has been removed and unpinned from this channel.")
 
-    @treacherypins.command(name="pinboardemoji")
-    async def set_pinboard_emoji(self, ctx, emoji: str):
+    @commands.command() # Added this decorator
+    @checks.admin_or_permissions(administrator=True)
+    async def pinboardemoji(self, ctx, emoji: str):
         """Set the emoji used to react and pin messages to the pinboard. Default is 📌."""
         # Check if the emoji is valid
         try:
@@ -87,8 +84,4 @@ class TreacheryPins(commands.Cog):
         # Check if there is a pinboard in this channel
         pinboard = await self.config.guild(guild).pinboard()
         if pinboard is None:
-            return
-        # Check if the reaction emoji matches the setting for this guild
-        emoji = await self.config.guild(guild).emoji()
-        if str(payload.emoji) != emoji:
             return
