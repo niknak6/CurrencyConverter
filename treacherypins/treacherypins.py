@@ -88,7 +88,7 @@ class TreacheryPins(commands.Cog):
          # Check if the reaction emoji matches the setting for this guild 
          emoji = await self.config.guild(guild).emoji() 
          if str(payload.emoji) != emoji: 
-             return
+             return 
          # Fetch the message that was reacted to 
          try: 
              message = await channel.fetch_message(payload.message_id) 
