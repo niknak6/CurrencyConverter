@@ -56,20 +56,20 @@ class PinExtender(commands.Cog):
             pinned_messages = await channel.pins()
             
             # Check if there are 50 or more pinned messages in the channel, including the extended pins message
-            if len(pinned_messages) >= self.pin_limit: # Changed this line to check for greater than or equal to instead of equality
-                # Sort the pinned messages by pin time and get the last pinned message (the newest one)
-                last_pin = sorted(pinned_messages, key=lambda m: m.pinned_at)[-1] # Changed this line to sort by pin time instead of by message ID
+            if len(pinned_messages) >= self.pin_limit: 
+                # Sort the pinned messages by creation time and get the last pinned message (the newest one)
+                last_pin = sorted(pinned_messages, key=lambda m: m.created_at)[-1] # Changed this line to sort by creation time instead of by pin time
                 
                 # Check if the last pin is the extended pins message
-                if last_pin.id == message.id: # Added this line to skip the extended pins message
+                if last_pin.id == message.id: 
                     return # Return from the method if it is
                 
-                # Prompt the user who pinned it for a description
-                await channel.send(f"{last_pin.pinner.mention}, please provide a description for your pin.") 
+                # Prompt the user who sent it for a description
+                await channel.send(f"{last_pin.author.mention}, please provide a description for your pin.")  # Changed this line to use last_pin.author instead of last_pin.pinner
                 
                 # Wait for a response from the user
                 try:
-                    response = await self.bot.wait_for('message', check=lambda m: m.author == last_pin.pinner and m.channel == channel, timeout=30) 
+                    response = await self.bot.wait_for('message', check=lambda m: m.author == last_pin.author and m.channel == channel, timeout=30)  # Changed this line to use last_pin.author instead of last_pin.pinner
                 except asyncio.TimeoutError: 
                     # If no response is received within 30 seconds, use a default description
                     description = "No description provided."
