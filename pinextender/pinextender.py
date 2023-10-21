@@ -2,6 +2,7 @@
 from redbot.core import commands
 from discord.ext import tasks
 import discord
+import asyncio # Added this line to import the asyncio module
 
 # Define the cog class
 class PinExtender(commands.Cog):
@@ -57,7 +58,7 @@ class PinExtender(commands.Cog):
                 # Wait for a response from the user
                 try:
                     response = await self.bot.wait_for('message', check=lambda m: m.author == last_pin.author and m.channel == channel, timeout=30)
-                except asyncio.TimeoutError:
+                except asyncio.TimeoutError: # Changed this line to use asyncio.TimeoutError exception
                     # If no response is received within 30 seconds, use a default description
                     description = "No description provided."
                 else:
