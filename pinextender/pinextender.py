@@ -52,12 +52,16 @@ class PinExtender(commands.Cog):
                 # Get the last pinned message (the newest one)
                 last_pin = pinned_messages[0]
                 
+                # Check if the last pin is the extended pins message
+                if last_pin.id == message.id: # Added this line to skip the extended pins message
+                    continue # Skip this iteration of the loop
+                
                 # Prompt the user who pinned it for a description
-                await channel.send(f"{last_pin.author.mention}, please provide a description for your pin.")
+                await channel.send(f"{last_pin.pinner.mention}, please provide a description for your pin.") # Changed this line to use last_pin.pinner instead of last_pin.author
                 
                 # Wait for a response from the user
                 try:
-                    response = await self.bot.wait_for('message', check=lambda m: m.author == last_pin.author and m.channel == channel, timeout=30)
+                    response = await self.bot.wait_for('message', check=lambda m: m.author == last_pin.pinner and m.channel == channel, timeout=30) # Changed this line to use last_pin.pinner instead of last_pin.author
                 except asyncio.TimeoutError: # Changed this line to use asyncio.TimeoutError exception
                     # If no response is received within 30 seconds, use a default description
                     description = "No description provided."
