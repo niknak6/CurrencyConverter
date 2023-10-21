@@ -9,10 +9,10 @@ class TreacheryPins(commands.Cog):
         # Assign the bot instance to self.bot
         self.bot = bot
 
-    # Define a command decorator with the name treacherypins
-    @commands.command(name="treacherypins")
+    # Define a command decorator with the name pintest
+    @commands.command(name="pintest")
     # Define an async function that takes self and ctx as parameters
-    async def treacherypins(self, ctx):
+    async def pintest(self, ctx):
         # Loop from 1 to 50
         for i in range(1, 51):
             # Try to send and pin a message
