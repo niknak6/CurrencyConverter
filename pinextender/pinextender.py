@@ -1,7 +1,3 @@
-# Import the discord and commands modules from discord.py
-import discord
-from discord.ext import commands
-
 # Import the necessary modules
 from redbot.core import commands
 from discord.ext import tasks
@@ -13,7 +9,7 @@ class PinExtender(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.pin_limit = 50 # The pin limit of a channel
+        self.pin_limit = 49 # The pin limit of a channel, excluding the extended pins message
         self.extended_pins = {} # A dictionary that maps channel IDs to extended pins messages IDs
         self.pin_check.start() # Start the background task that checks for new pins
 
@@ -50,8 +46,8 @@ class PinExtender(commands.Cog):
             # Get the list of pinned messages in the channel
             pinned_messages = await channel.pins()
             
-            # Check if there are 50 pinned messages in the channel
-            if len(pinned_messages) == self.pin_limit:
+            # Check if there are 49 pinned messages in the channel, excluding the extended pins message
+            if len(pinned_messages) - 1 == self.pin_limit:
                 # Get the last pinned message (the newest one)
                 last_pin = pinned_messages[0]
                 
