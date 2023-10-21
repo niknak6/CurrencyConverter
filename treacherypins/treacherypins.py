@@ -9,16 +9,18 @@ class TreacheryPins(commands.Cog):
         # Assign the bot instance to self.bot
         self.bot = bot
 
-    # Define a command decorator with the name pintest
-    @commands.command(name="pintest")
+    # Define a command decorator with the name treacherypins
+    @commands.command(name="treacherypins")
     # Define an async function that takes self and ctx as parameters
-    async def pintest(self, ctx):
+    async def treacherypins(self, ctx):
         # Loop from 1 to 50
         for i in range(1, 51):
-            # Send a message with the current number to the channel
-            message = await ctx.send(i)
-            # Pin the message to the channel
-            await message.pin()
+            # Try to send and pin a message
+            try:
+                # Send a message with the current number to the channel
+                message = await ctx.send(i)
+                # Pin the message to the channel
+                await message.pin()
             # Catch any possible errors
             except discord.HTTPException as e:
                 # Print the error message to the console
@@ -29,4 +31,4 @@ class TreacheryPins(commands.Cog):
 # Define a setup function that takes bot as a parameter
 def setup(bot):
     # Add the cog instance to the bot
-    bot.add_cog(PinTestCog(bot))
+    bot.add_cog(TreacheryPins(bot))
