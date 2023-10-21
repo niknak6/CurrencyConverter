@@ -2,6 +2,9 @@
 import discord
 from discord.ext import commands
 
+# Define a constant for the number of messages to send and pin
+NUM_MESSAGES = 50
+
 # Create a class that inherits from commands.Cog
 class TreacheryPins(commands.Cog):
     # Define the constructor
@@ -13,8 +16,8 @@ class TreacheryPins(commands.Cog):
     @commands.command(name="pintest")
     # Define an async function that takes self and ctx as parameters
     async def pintest(self, ctx):
-        # Loop from 1 to 50
-        for i in range(1, 51):
+        # Loop from 1 to NUM_MESSAGES
+        for i in range(1, NUM_MESSAGES + 1):
             # Try to send and pin a message
             try:
                 # Send a message with the current number to the channel
