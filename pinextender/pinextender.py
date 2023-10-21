@@ -39,7 +39,7 @@ class PinExtender(commands.Cog):
         # Check if there is any data in payload.data (the raw data of an edited message)
         if payload.data:
             # Check if there is any data in payload.data['flags'] (the flags of an edited message)
-            if 'flags' in payload.data and 4 in payload.data['flags']: # Check if payload.data['flags'] has 4 as one of its values (the value for a pinned message)
+            if 'flags' in payload.data and 4 in [payload.data['flags']]: # Check if payload.data['flags'] has 4 as one of its values (the value for a pinned message)
                 # Get the channel ID and message ID from payload.data
                 channel_id = int(payload.data['channel_id'])
                 message_id = int(payload.data['id'])
@@ -71,41 +71,40 @@ class PinExtender(commands.Cog):
                         # Fetch the new pin message from the channel using its ID
                         new_pin = await channel.fetch_message(message_id)
                         
-                        # Check if the new pin is the extended pins message
-                        if new_pin.id == message.id: 
-                            return # Return from the method if it is
+                        # Check if the new pin is not None and is not the extended pins message (to avoid errors when unpinning or editing)
+                        if new_pin and new_pin.id != message.id: 
 
-                        # Get the user ID of who pinned the message from payload.data['member']['user']['id'] (the ID of who edited it) 
-                        pinner_id = int(payload.data['member']['user']['id']) 
+                            # Get the user ID of who pinned or edited the message from payload.data['member']['user']['id'] (the ID of who edited it) 
+                            pinner_id = int(payload.data['member']['user']['id']) 
 
-                        # Get the user object of who pinned it from their ID 
-                        pinner = await guild.fetch_member(pinner_id) 
+                            # Get or fetch (if not cached) the user object of who pinned or edited it from their ID 
+                            pinner = guild.get_member(pinner_id) or await guild.fetch_member(pinner_id)
 
-                        # Prompt who pinned it for a description 
-                        await channel.send(f"{pinner.display_name}, please provide a description for your pin.") 
+                            # Prompt who pinned or edited it for a description 
+                            await channel.send(f"{pinner.display_name}, please provide a description for your pin.") 
 
-                        # Wait for a response from who pinned it 
-                        try:
-                            response = await self.bot.wait_for('message', check=lambda m: m.author == pinner and m.channel == channel, timeout=30) 
-                        except asyncio.TimeoutError: 
-                            # If no response is received within 30 seconds, use a default description
-                            description = "No description provided."
-                        else:
-                            # If a response is received, use it as the description
-                            description = response.content
+                            # Wait for a response from who pinned or edited it 
+                            try:
+                                response = await self.bot.wait_for('message', check=lambda m: m.author == pinner and m.channel == channel, timeout=30) 
+                            except asyncio.TimeoutError: 
+                                # If no response is received within 30 seconds, use a default description
+                                description = "No description provided."
+                            else:
+                                # If a response is received, use it as the description
+                                description = response.content
                         
-                        # Get the link of the new pin message
-                        link = new_pin.jump_url
+                            # Get the link of the new pin message
+                            link = new_pin.jump_url
                         
-                        # Update the extended pins message by adding the description and the link at the top
-                        content = message.content + f"\n- {description}: {link}"
-                        await message.edit(content=content)
+                            # Update the extended pins message by adding the description and the link at the top
+                            content = message.content + f"\n- {description}: {link}"
+                            await message.edit(content=content)
                         
-                        # Remove the new pin message from the channel
-                        await channel.unpin(new_pin)
+                            # Remove the new pin message from the channel
+                            await channel.unpin(new_pin)
                         
-                        # Send a confirmation message
-                        await channel.send("Updated the extended pins message and removed the new pin from the channel.")
+                            # Send a confirmation message
+                            await channel.send("Updated the extended pins message and removed the new pin from the channel.")
 
     @commands.command() 
     async def pinnumber(self, ctx):
