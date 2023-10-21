@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 
 # Create a class that inherits from commands.Cog
-class PinTestCog(commands.Cog):
+class TreacheryPins(commands.Cog):
     # Define the constructor
     def __init__(self, bot):
         # Assign the bot instance to self.bot
