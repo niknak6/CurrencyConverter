@@ -81,3 +81,15 @@ class PinExtender(commands.Cog):
                 
                 # Send a confirmation message
                 await channel.send("Updated the extended pins message and removed the last pin from the channel.")
+
+    @commands.command() # Added this line to define a new command called pinnumber
+    async def pinnumber(self, ctx):
+        """Shows the current total number of pins in the channel."""
+        # Get the list of pinned messages in the channel
+        pinned_messages = await ctx.channel.pins()
+        
+        # Get the number of pinned messages in the channel
+        pin_count = len(pinned_messages)
+        
+        # Send a message with the pin count
+        await ctx.send(f"There are currently {pin_count} pins in this channel.")
