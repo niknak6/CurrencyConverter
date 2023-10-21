@@ -1,9 +1,9 @@
 {
-    "author": ["nik"],
-    "name": "treacheryaffixes",
-    "install_msg": "Thanks for installing Treachery's Mythic+ Affix Cog",
-    "short": "treacheryaffixes",
-    "description": "Cog for storing and posting M+ schedule",
+    "author": ["@nik.olas"],
+    "name": "pinextender",
+    "install_msg": "Thanks for installing Treachery's Pin Extender Cog",
+    "short": "pinextender",
+    "description": "Cog for extending pins",
     "tags": [
         "",
         "",
