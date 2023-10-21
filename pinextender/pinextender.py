@@ -34,75 +34,61 @@ class PinExtender(commands.Cog):
         # Send a confirmation message
         await ctx.send("Created and pinned an extended pins message in this channel.")
 
-    @commands.Cog.listener() # Added this line to register a listener for the on_raw_message_edit event
-    async def on_raw_message_edit(self, payload): # Added this method to handle the event when a message is edited
+    @commands.Cog.listener() # Added this line to register a listener for the on_guild_channel_pins_update event
+    async def on_guild_channel_pins_update(self, channel, last_pin): # Added this method to handle the event when the pins of a channel are updated
         """Updates the extended pins message when a new pin is added to a channel."""
-        # Check if there is any data in payload.data (the raw data of an edited message)
-        if payload.data:
-            # Check if there is any data in payload.data['flags'] (the flags of an edited message)
-            if payload.data['flags']:
-                # Check if payload.data['flags'] has 4 as one of its values (the value for a pinned message)
-                if 4 in payload.data['flags']:
-                    # Get the channel ID and message ID from payload.data
-                    channel_id = int(payload.data['channel_id'])
-                    message_id = int(payload.data['id'])
-                    
-                    # Check if the channel has an extended pins message
-                    if channel_id in self.extended_pins:
-                        # Get the guild ID from payload.data
-                        guild_id = int(payload.data['guild_id'])
-                        
-                        # Get the guild and channel objects from their IDs
-                        guild = self.bot.get_guild(guild_id)
-                        channel = guild.get_channel(channel_id)
-                        
-                        # Try to fetch the extended pins message from the channel
-                        try:
-                            message = await channel.fetch_message(self.extended_pins[channel_id])
-                        except discord.NotFound: # Handle the case when the message is not found
-                            del self.extended_pins[channel_id] # Delete the entry from the dictionary if the message is deleted
-                            return # Return from the method if the message is deleted
-                        except discord.Forbidden: # Handle the case when the bot lacks permissions
-                            await channel.send("I do not have permission to access pinned messages in this channel.") # Send an error message to inform the user
-                            return # Return from the method if the bot lacks permissions
-                        
-                        # Get the list of pinned messages in the channel
-                        pinned_messages = await channel.pins()
-                        
-                        # Check if there are 50 or more pinned messages in the channel, including the extended pins message
-                        if len(pinned_messages) >= self.pin_limit: 
-                            # Fetch the new pin message from the channel using its ID
-                            new_pin = await channel.fetch_message(message_id)
-                            
-                            # Check if the new pin is the extended pins message
-                            if new_pin.id == message.id: 
-                                return # Return from the method if it is
-                            
-                            # Prompt the user who sent it for a description
-                            await channel.send(f"{new_pin.author.mention}, please provide a description for your pin.")  
-                            
-                            # Wait for a response from the user
-                            try:
-                                response = await self.bot.wait_for('message', check=lambda m: m.author == new_pin.author and m.channel == channel, timeout=30)  
-                            except asyncio.TimeoutError: 
-                                # If no response is received within 30 seconds, use a default description
-                                description = "No description provided."
-                            else:
-                                # If a response is received, use it as the description
-                                description = response.content
-                            
-                            # Get the link of the new pin message
-                            link = new_pin.jump_url
-                            
-                            # Update the extended pins message by adding the description and the link at the top
-                            content = message.content + f"\n- {description}: {link}"
-                            await message.edit(content=content)
-                            
-                            # Remove the new pin message from the channel
-                            await new_pin.unpin()
-                            
-                            # Send a confirmation message
-                            await channel.send("Updated the extended pins message and removed the new pin from the channel.")
+        # Check if the channel has an extended pins message
+        if channel.id in self.extended_pins:
+            # Get the message ID of the extended pins message
+            message_id = self.extended_pins[channel.id]
+            
+            # Try to fetch the extended pins message from the channel
+            try:
+                message = await channel.fetch_message(message_id)
+            except discord.NotFound: # Handle the case when the message is not found
+                del self.extended_pins[channel.id] # Delete the entry from the dictionary if the message is deleted
+                return # Return from the method if the message is deleted
+            except discord.Forbidden: # Handle the case when the bot lacks permissions
+                await channel.send("I do not have permission to access pinned messages in this channel.") # Send an error message to inform the user
+                return # Return from the method if the bot lacks permissions
+            
+            # Get the list of pinned messages in the channel
+            pinned_messages = await channel.pins()
+            
+            # Check if there are 50 or more pinned messages in the channel, including the extended pins message
+            if len(pinned_messages) >= self.pin_limit: 
+                # Sort the pinned messages by creation time and get the last pinned message (the newest one)
+                last_pin = sorted(pinned_messages, key=lambda m: m.created_at)[-1] 
+                
+                # Check if the last pin is the extended pins message
+                if last_pin.id == message.id: 
+                    return # Return from the method if it is
+                
+                # Prompt the user who sent it for a description
+                await channel.send(f"{last_pin.author.mention}, please provide a description for your pin.")  
+                
+                # Wait for a response from the user
+                try:
+                    response = await self.bot.wait_for('message', check=lambda m: m.author == last_pin.author and m.channel == channel, timeout=30)  
+                except asyncio.TimeoutError: 
+                    # If no response is received within 30 seconds, use a default description
+                    description = "No description provided."
+                else:
+                    # If a response is received, use it as the description
+                    description = response.content
+                
+                # Get the link of the last pinned message
+                link = last_pin.jump_url
+                
+                # Update the extended pins message by adding the description and the link at the top
+                content = message.content + f"\n- {description}: {link}"
+                await message.edit(content=content)
+                
+                # Remove the last pinned message from the channel
+                await last_pin.unpin()
+                
+                # Send a confirmation message
+                await channel.send("Updated the extended pins message and removed the last pin from the channel.")
 
     @commands.command() 
     async def pinnumber(self, ctx):
