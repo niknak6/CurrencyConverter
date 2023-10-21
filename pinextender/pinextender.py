@@ -10,12 +10,11 @@ class PinExtender(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.pin_limit = 49 # The pin limit of a channel, excluding the extended pins message
+        self.pin_limit = 50 # The pin limit of a channel, as per Discord's documentation
         self.extended_pins = {} # A dictionary that maps channel IDs to extended pins messages IDs
-        self.pin_check.start() # Start the background task that checks for new pins
 
     def cog_unload(self):
-        self.pin_check.cancel() # Stop the background task when the cog is unloaded
+        pass # No need to cancel the task loop since we are not using it anymore
 
     @commands.command()
     async def pinextender(self, ctx):
@@ -35,26 +34,35 @@ class PinExtender(commands.Cog):
         # Send a confirmation message
         await ctx.send("Created and pinned an extended pins message in this channel.")
 
-    @tasks.loop(seconds=10) # Run this task every 10 seconds
-    async def pin_check(self):
-        """Checks for new pins in channels that have an extended pins message and updates them accordingly."""
-        # Loop through all the channels that have an extended pins message
-        for channel_id, message_id in self.extended_pins.items():
-            # Get the channel and the message objects
-            channel = self.bot.get_channel(channel_id)
-            message = await channel.fetch_message(message_id)
+    @commands.Cog.listener() # Added this line to register a listener for the on_guild_channel_pins_update event
+    async def on_guild_channel_pins_update(self, channel, last_pin): # Added this method to handle the event when the pins of a channel are updated
+        """Updates the extended pins message when a new pin is added to the channel."""
+        # Check if the channel has an extended pins message
+        if channel.id in self.extended_pins:
+            # Get the message ID of the extended pins message
+            message_id = self.extended_pins[channel.id]
+            
+            # Try to fetch the extended pins message from the channel
+            try:
+                message = await channel.fetch_message(message_id)
+            except discord.NotFound: # Handle the case when the message is not found
+                del self.extended_pins[channel.id] # Delete the entry from the dictionary if the message is deleted
+                return # Return from the method if the message is deleted
+            except discord.Forbidden: # Handle the case when the bot lacks permissions
+                await channel.send("I do not have permission to access pinned messages in this channel.") # Send an error message to inform the user
+                return # Return from the method if the bot lacks permissions
             
             # Get the list of pinned messages in the channel
             pinned_messages = await channel.pins()
             
-            # Check if there are 49 pinned messages in the channel, excluding the extended pins message
-            if len(pinned_messages) - 1 == self.pin_limit:
+            # Check if there are 50 pinned messages in the channel, including the extended pins message
+            if len(pinned_messages) == self.pin_limit:
                 # Get the last pinned message (the newest one)
                 last_pin = pinned_messages[0]
                 
                 # Check if the last pin is the extended pins message
                 if last_pin.id == message.id: # Added this line to skip the extended pins message
-                    continue # Skip this iteration of the loop
+                    return # Return from the method if it is
                 
                 # Prompt the user who pinned it for a description
                 await channel.send(f"{last_pin.pinner.mention}, please provide a description for your pin.") # Changed this line to use last_pin.pinner instead of last_pin.author
