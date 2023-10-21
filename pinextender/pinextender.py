@@ -55,22 +55,22 @@ class PinExtender(commands.Cog):
             # Get the list of pinned messages in the channel
             pinned_messages = await channel.pins()
             
-            # Check if there are 50 pinned messages in the channel, including the extended pins message
-            if len(pinned_messages) == self.pin_limit:
-                # Get the last pinned message (the newest one)
-                last_pin = pinned_messages[0]
+            # Check if there are 50 or more pinned messages in the channel, including the extended pins message
+            if len(pinned_messages) >= self.pin_limit: # Changed this line to check for greater than or equal to instead of equality
+                # Sort the pinned messages by pin time and get the last pinned message (the newest one)
+                last_pin = sorted(pinned_messages, key=lambda m: m.pinned_at)[-1] # Changed this line to sort by pin time instead of by message ID
                 
                 # Check if the last pin is the extended pins message
                 if last_pin.id == message.id: # Added this line to skip the extended pins message
                     return # Return from the method if it is
                 
                 # Prompt the user who pinned it for a description
-                await channel.send(f"{last_pin.pinner.mention}, please provide a description for your pin.") # Changed this line to use last_pin.pinner instead of last_pin.author
+                await channel.send(f"{last_pin.pinner.mention}, please provide a description for your pin.") 
                 
                 # Wait for a response from the user
                 try:
-                    response = await self.bot.wait_for('message', check=lambda m: m.author == last_pin.pinner and m.channel == channel, timeout=30) # Changed this line to use last_pin.pinner instead of last_pin.author
-                except asyncio.TimeoutError: # Changed this line to use asyncio.TimeoutError exception
+                    response = await self.bot.wait_for('message', check=lambda m: m.author == last_pin.pinner and m.channel == channel, timeout=30) 
+                except asyncio.TimeoutError: 
                     # If no response is received within 30 seconds, use a default description
                     description = "No description provided."
                 else:
@@ -90,7 +90,7 @@ class PinExtender(commands.Cog):
                 # Send a confirmation message
                 await channel.send("Updated the extended pins message and removed the last pin from the channel.")
 
-    @commands.command() # Added this line to define a new command called pinnumber
+    @commands.command() 
     async def pinnumber(self, ctx):
         """Shows the current total number of pins in the channel."""
         # Get the list of pinned messages in the channel
