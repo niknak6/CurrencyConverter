@@ -118,7 +118,7 @@ class PinExtender(commands.Cog):
                     description = new_pin.content
 
                     # Encode the description to make it URL-safe
-                    description = urllib.parse.quote(description)
+                    description = urllib.parse.quote_plus(description)
 
                     # Get the link of the new pin message
                     link = new_pin.jump_url
