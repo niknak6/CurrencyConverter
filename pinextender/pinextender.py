@@ -105,10 +105,10 @@ class PinExtender(commands.Cog):
                     if new_pin and new_pin.id != message.id: 
 
                         # Get or fetch (if not cached) who pinned or edited it from their ID 
-                        pinner = before.author or await self.bot.fetch_user(before.author.id)
+                        pinner = after.author or await self.bot.fetch_user(after.author.id)
 
                         # Prompt who pinned or edited it for a description 
-                        await before.channel.send(f"{pinner.display_name}, please provide a description for your pin.") 
+                        await after.channel.send(f"{pinner.display_name}, please provide a description for your pin.") 
 
                         # Wait for a response from who pinned or edited it 
                         try:
