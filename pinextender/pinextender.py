@@ -2,7 +2,6 @@
 from redbot.core import commands, checks
 import discord
 import urllib.parse # Added this module to parse URLs
-import validators # Added this module to validate URLs
 
 # Define the cog class
 class PinExtender(commands.Cog):
@@ -49,8 +48,8 @@ class PinExtender(commands.Cog):
 
             # Get the message link and description of the last pinned message
             message_link = last_pinned_message.jump_url
-            # Modified this line to check if the message content is empty or a valid URL and use the :paperclip: emoji accordingly
-            message_description = ":paperclip:" if (last_pinned_message.content == "" or validators.url(last_pinned_message.content)) and (last_pinned_message.attachments or last_pinned_message.embeds) else (last_pinned_message.content[:20] + "..." if len(last_pinned_message.content) > 20 else last_pinned_message.content)
+            # Modified this line to check if the message content is only a valid URL and use the :paperclip: emoji accordingly
+            message_description = ":paperclip:" if validators.url(last_pinned_message.content) else (last_pinned_message.content[:20] + "..." if len(last_pinned_message.content) > 20 else last_pinned_message.content)
 
             # Add the message link and description to the bottom of the extended pins message
             await extended_pins_message.edit(content=f"{extended_pins_message.content}\n{message_link} - {message_description}")
