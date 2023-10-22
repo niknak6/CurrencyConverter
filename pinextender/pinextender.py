@@ -4,6 +4,7 @@ from discord.ext import tasks
 import discord
 import logging
 import datetime # Import the datetime module
+import urllib.parse # Import the urllib.parse module
 
 # Define constants
 PIN_LIMIT = 50 # The pin limit of a channel, as per Discord's documentation
@@ -55,8 +56,11 @@ class PinExtender(commands.Cog):
             await ctx.send("This channel already has an extended pins message.")
             return
         
-        # Create the extended pins message and pin it
-        message = await ctx.reply(EXTENDED_PINS_CONTENT)
+        # Create an embed object with the extended pins content and colour
+        embed = discord.Embed(description=EXTENDED_PINS_CONTENT, colour=discord.Colour.blue())
+        
+        # Send the embed object and pin it
+        message = await ctx.reply(embed=embed)
         await message.pin()
         
         # Store the message ID in the dictionary
@@ -110,12 +114,17 @@ class PinExtender(commands.Cog):
                     # Use the content of the new pin message as the description 
                     description = new_pin.content
 
+                    # Encode the description to make it URL-safe
+                    description = urllib.parse.quote(description)
+
                     # Get the link of the new pin message
                     link = new_pin.jump_url
                     
-                    # Update the extended pins message by adding a single hyperlink with the description and the link
-                    content = EXTENDED_PINS_CONTENT + f"\n- {description}"
-                    await message.edit(content=content)
+                    # Update the embed object by adding a single hyperlink with the description and the link
+                    embed = discord.Embed(description=EXTENDED_PINS_CONTENT + f"\n- {description}", colour=discord.Colour.blue())
+                    
+                    # Edit the message with the updated embed object
+                    await message.edit(embed=embed)
                     
                     # Try to unpin the new pin message from the channel
                     try:
