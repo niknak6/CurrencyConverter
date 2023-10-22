@@ -105,10 +105,10 @@ class PinExtender(commands.Cog):
                     if new_pin and new_pin.id != message.id: 
 
                         # Get or fetch (if not cached) who pinned or edited it from their ID 
-                        pinner = before.author or await self.bot.fetch_user(before.author.id)
+                        pinner = ctx.message.author or await self.bot.fetch_user(ctx.message.author.id)
 
                         # Prompt who pinned or edited it for a description 
-                        await channel.send(f"{pinner.display_name}, please provide a description for your pin.") 
+                        await ctx.send(f"{pinner.display_name}, please provide a description for your pin.") 
 
                         # Wait for a response from who pinned or edited it 
                         try:
@@ -129,7 +129,7 @@ class PinExtender(commands.Cog):
                         
                         # Try to unpin the new pin message from the channel
                         try:
-                            await channel.unpin(new_pin)
+                            await new_pin.unpin()
                         except discord.NotFound:
                             # Handle the case when the message is not found
                             log.error(f"The new pin {new_pin} was not found in {channel}.") # Log an error message to inform the owner
@@ -138,7 +138,7 @@ class PinExtender(commands.Cog):
                             log.error(f"I do not have permission to unpin messages in {channel}.") # Log an error message to inform the owner
                         else:
                             # Send a confirmation message
-                            await channel.send("Updated the extended pins message and removed the new pin from the channel.")
+                            await ctx.send("Updated the extended pins message and removed the new pin from the channel.")
 
     @commands.command() 
     @commands.guild_only()
