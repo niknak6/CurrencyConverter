@@ -46,8 +46,8 @@ class PinExtender(commands.Cog):
         pass # No need to cancel the task loop since we are not using it anymore
 
     @commands.command()
-    @commands.guild_only()
-    @commands.bot_has_permissions(manage_messages=True)
+    @guild_only()
+    @bot_has_manage_messages()
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def pinextender(self, ctx: commands.Context):
         """Creates an extended pins message in the current channel and pins it."""
@@ -108,8 +108,11 @@ class PinExtender(commands.Cog):
                     # Get or fetch (if not cached) who pinned it from their ID using the audit log entry for the pin action
                     audit_log_entries = guild.audit_logs(action=discord.AuditLogAction.message_pin) # Get the audit log entries for the pin action
                     async for entry in audit_log_entries: # Use an async for loop to iterate over the async generator
-                        break # Exit the loop after getting the first entry
-                    pinner = entry.user or await self.bot.fetch_user(entry.user.id) # Get the user object from the audit log entry
+                        if entry.target.id == new_pin.id: # Check if the entry matches the new pin message ID
+                            pinner = entry.user or await self.bot.fetch_user(entry.user.id) # Get the user object from the audit log entry
+                            break # Exit the loop after getting the matching entry
+                    else: # Handle the case when no matching entry is found
+                        pinner = None # Set the pinner to None
 
                     # Use the content of the new pin message as the description 
                     description = new_pin.content
@@ -122,6 +125,10 @@ class PinExtender(commands.Cog):
                     
                     # Update the embed object by adding a single hyperlink with the description and the link
                     embed = discord.Embed(description=EXTENDED_PINS_CONTENT + f"\n- {description}", colour=discord.Colour.blue())
+                    
+                    # Add a footer with the pinner's name and avatar if available
+                    if pinner:
+                        embed.set_footer(text=f"Pinned by {pinner}", icon_url=pinner.avatar_url)
                     
                     # Edit the message with the updated embed object
                     await message.edit(embed=embed)
@@ -140,8 +147,8 @@ class PinExtender(commands.Cog):
                         await new_pin.channel.send("Updated the extended pins message and removed the new pin from the channel.")
 
     @commands.command() 
-    @commands.guild_only()
-    @commands.bot_has_permissions(manage_messages=True)
+    @guild_only()
+    @bot_has_manage_messages()
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def pinnumber(self, ctx: commands.Context):
         """Shows the current total number of pins in the channel."""
