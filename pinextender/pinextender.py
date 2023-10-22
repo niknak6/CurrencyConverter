@@ -103,7 +103,8 @@ class PinExtender(commands.Cog):
 
                     # Get or fetch (if not cached) who pinned it from their ID using the audit log entry for the pin action
                     audit_log_entries = guild.audit_logs(action=discord.AuditLogAction.message_pin) # Get the audit log entries for the pin action
-                    entry = next(iter(audit_log_entries)) # Get the first audit log entry from the audit log entries
+                    async for entry in audit_log_entries: # Use an async for loop to iterate over the async generator
+                        break # Exit the loop after getting the first entry
                     pinner = entry.user or await self.bot.fetch_user(entry.user.id) # Get the user object from the audit log entry
 
                     # Prompt who pinned it for a description 
