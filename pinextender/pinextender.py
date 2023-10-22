@@ -107,24 +107,14 @@ class PinExtender(commands.Cog):
                         break # Exit the loop after getting the first entry
                     pinner = entry.user or await self.bot.fetch_user(entry.user.id) # Get the user object from the audit log entry
 
-                    # Prompt who pinned it for a description 
-                    await new_pin.channel.send(f"{pinner.display_name}, please provide a description for your pin.") 
+                    # Use the content of the new pin message as the description 
+                    description = new_pin.content
 
-                    # Wait for a response from who pinned it 
-                    try:
-                        response = await self.bot.wait_for('message', check=lambda m: m.author == pinner and m.channel == channel, timeout=30) 
-                    except asyncio.TimeoutError: 
-                        # If no response is received within 30 seconds, use a default description
-                        description = "No description provided."
-                    else:
-                        # If a response is received, use it as the description
-                        description = response.content
-                    
                     # Get the link of the new pin message
                     link = new_pin.jump_url
                     
-                    # Update the extended pins message by adding the description and the link at the top
-                    content = EXTENDED_PINS_CONTENT + f"\n- {description}: {link}"
+                    # Update the extended pins message by adding a single hyperlink with the description and the link
+                    content = EXTENDED_PINS_CONTENT + f"\n- {description}"
                     await message.edit(content=content)
                     
                     # Try to unpin the new pin message from the channel
