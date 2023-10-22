@@ -1,7 +1,7 @@
 {
-    "author": ["valor (Valor_bound)"],
-    "name": "PictureOnly",
-    "install_msg": "Thank you for installing this PictureOnly!\nDo `[p]help` to get the list of commands and their description.",
+    "author": ["nik"],
+    "name": "hellotest",
+    "install_msg": "Thank you for installing this test!\nDo `[p]help` to get the list of commands and their description.",
     "short": "Set A picture-only channel for A guild!",
     "description": "Set A picture-only channel for A guild!",
     "tags": [
