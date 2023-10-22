@@ -101,8 +101,10 @@ class PinExtender(commands.Cog):
                 # Check if new_pin is not None and is not the extended pins message (to avoid errors when unpinning or editing)
                 if new_pin and new_pin.id != message.id: 
 
-                    # Get or fetch (if not cached) who pinned it from their ID 
-                    pinner = new_pin.pinned_by or await self.bot.fetch_user(new_pin.pinned_by.id)
+                    # Get or fetch (if not cached) who pinned it from their ID using the audit log entry for the pin action
+                    audit_log_entries = guild.audit_logs(action=discord.AuditLogAction.message_pin) # Get the audit log entries for the pin action
+                    entry = next(iter(audit_log_entries)) # Get the first audit log entry from the audit log entries
+                    pinner = entry.user or await self.bot.fetch_user(entry.user.id) # Get the user object from the audit log entry
 
                     # Prompt who pinned it for a description 
                     await new_pin.channel.send(f"{pinner.display_name}, please provide a description for your pin.") 
