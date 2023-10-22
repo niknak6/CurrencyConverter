@@ -23,5 +23,15 @@ class HelloTest(commands.Cog):
             # Increment the current number by 1
             number += 1
 
+    @commands.command()
+    async def unhellotest(self, ctx):
+        # Get a list of all pinned messages in the channel
+        pins = await ctx.channel.pins()
+        # Iterate over the pinned messages and unpin them
+        for pin in pins:
+            await pin.unpin()
+        # Send a confirmation message
+        await ctx.send("I have removed all pins from this channel.")
+
 def setup(bot):
     bot.add_cog(HelloTest(bot))
