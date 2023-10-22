@@ -124,7 +124,7 @@ class PinExtender(commands.Cog):
                     link = new_pin.jump_url
                     
                     # Update the embed object by adding a single hyperlink with the description and the link
-                    embed = discord.Embed(description=EXTENDED_PINS_CONTENT + f"\n- {description}", colour=discord.Colour.blue())
+                    embed = discord.Embed(description=EXTENDED_PINS_CONTENT + f"\n- [{description}] ({link})", colour=discord.Colour.blue())
                     
                     # Add a footer with the pinner's name and avatar if available
                     if pinner:
