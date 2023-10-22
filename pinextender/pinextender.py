@@ -55,8 +55,8 @@ class PinExtender(commands.Cog):
 
             # Get the message link and description of the last pinned message
             message_link = last_pinned_message.jump_url
-            # Modified this line to use the custom function is_url instead of validators.url
-            message_description = ":paperclip:" if is_url(last_pinned_message.content) else (last_pinned_message.content[:20] + "..." if len(last_pinned_message.content) > 20 else last_pinned_message.content)
+            # Modified this line to check if the message content is only a valid URL or if it has any attachments or embeds, and use the :paperclip: emoji accordingly
+            message_description = ":paperclip:" if (is_url(last_pinned_message.content) or last_pinned_message.attachments or last_pinned_message.embeds) else (last_pinned_message.content[:20] + "..." if len(last_pinned_message.content) > 20 else last_pinned_message.content)
 
             # Add the message link and description to the bottom of the extended pins message
             await extended_pins_message.edit(content=f"{extended_pins_message.content}\n{message_link} - {message_description}")
