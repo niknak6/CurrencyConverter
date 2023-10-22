@@ -39,8 +39,11 @@ class PinExtender(commands.Cog):
             # Get the extended pins message object
             extended_pins_message = await channel.fetch_message(self.extended_pins[channel.id])
 
-            # Get the last pinned message object
-            last_pinned_message = await channel.pins()[0]
+            # Get the list of pinned messages in the channel
+            pinned_messages = await channel.pins()
+
+            # Get the last pinned message object from the list
+            last_pinned_message = pinned_messages[0]
 
             # Get the message link and description of the last pinned message
             message_link = last_pinned_message.jump_url
