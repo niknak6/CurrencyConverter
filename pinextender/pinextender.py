@@ -108,7 +108,7 @@ class PinExtender(commands.Cog):
                         pinner = before.author or await self.bot.fetch_user(before.author.id)
 
                         # Prompt who pinned or edited it for a description 
-                        await ctx.send(f"{pinner.display_name}, please provide a description for your pin.") 
+                        await before.channel.send(f"{pinner.display_name}, please provide a description for your pin.") 
 
                         # Wait for a response from who pinned or edited it 
                         try:
@@ -138,7 +138,7 @@ class PinExtender(commands.Cog):
                             log.error(f"I do not have permission to unpin messages in {channel}.") # Log an error message to inform the owner
                         else:
                             # Send a confirmation message
-                            await ctx.send("Updated the extended pins message and removed the new pin from the channel.")
+                            await after.channel.send("Updated the extended pins message and removed the new pin from the channel.")
 
     @commands.command() 
     @commands.guild_only()
