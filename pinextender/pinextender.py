@@ -5,7 +5,7 @@ import discord
 import logging
 import datetime
 import urllib.parse
-from typing import Callable
+from typing import Callable, Awaitable # Add this import
 
 # Define constants
 PIN_LIMIT = 50
