@@ -134,3 +134,23 @@ class PinExtender(commands.Cog):
                             # Handle the case when the message is not found
                             log.error(f"The new pin {new_pin} was not found in {channel}.") # Log an error message to inform the owner
                         except discord.Forbidden:
+                            # Handle the case when the bot lacks permissions
+                            log.error(f"I do not have permission to unpin messages in {channel}.") # Log an error message to inform the owner
+                        else:
+                            # Send a confirmation message
+                            await channel.send("Updated the extended pins message and removed the new pin from the channel.")
+
+    @commands.command() 
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_messages=True)
+    @commands.max_concurrency(1, commands.BucketType.channel)
+    async def pinnumber(self, ctx: commands.Context):
+        """Shows the current total number of pins in the channel."""
+        # Get the list of pinned messages in the channel
+        pinned_messages = await ctx.channel.pins()
+        
+        # Get the number of pinned messages in the channel
+        pin_count = len(pinned_messages)
+        
+        # Send a message with the pin count
+        await ctx.send(f"There are currently {pin_count} pins in this channel.")
