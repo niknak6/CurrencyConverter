@@ -47,7 +47,7 @@ class PinExtender(commands.Cog):
 
             # Get the message link and description of the last pinned message
             message_link = last_pinned_message.jump_url
-            message_description = last_pinned_message.content[:20] + "..." if len(last_pinned_message.content) > 20 else last_pinned_message.content
+            message_description = ":paperclip:" if last_pinned_message.content == "" and last_pinned_message.attachments else (last_pinned_message.content[:20] + "..." if len(last_pinned_message.content) > 20 else last_pinned_message.content)
 
             # Add the message link and description to the bottom of the extended pins message
             await extended_pins_message.edit(content=f"{extended_pins_message.content}\n{message_link} - {message_description}")
