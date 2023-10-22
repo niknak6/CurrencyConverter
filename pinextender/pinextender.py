@@ -117,21 +117,11 @@ class PinExtender(commands.Cog):
                     # Use the content of the new pin message as the description 
                     description = new_pin.content
 
-                    # Encode the description to make it URL-safe
-                    description = urllib.parse.quote_plus(description)
-
                     # Get the link of the new pin message
                     link = new_pin.jump_url
                     
-                    # Update the embed object by adding a single hyperlink with the description and the link
-                    embed = discord.Embed(description=EXTENDED_PINS_CONTENT + f"\n- [{description}] ({link})", colour=discord.Colour.blue())
-                    
-                    # Add a footer with the pinner's name and avatar if available
-                    if pinner:
-                        embed.set_footer(text=f"Pinned by {pinner}", icon_url=pinner.avatar_url)
-                    
-                    # Edit the message with the updated embed object
-                    await message.edit(embed=embed)
+                    # Send a normal message with a single hyperlink with the description and the link
+                    await message.channel.send(f"{EXTENDED_PINS_CONTENT}\n- {description}")
                     
                     # Try to unpin the new pin message from the channel
                     try:
