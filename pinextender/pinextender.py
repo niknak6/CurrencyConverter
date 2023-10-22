@@ -3,6 +3,7 @@ from redbot.core import commands
 from discord.ext import tasks
 import discord
 import logging
+import datetime # Import the datetime module
 
 # Define constants
 PIN_LIMIT = 50 # The pin limit of a channel, as per Discord's documentation
