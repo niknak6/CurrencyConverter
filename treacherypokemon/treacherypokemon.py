@@ -233,7 +233,7 @@ class TreacheryPokemon(commands.Cog):
                             species_data = await response.json()
                             varieties = species_data['varieties']
                             if len(varieties) > 1:
-                                allowed_varieties = [v for v in varieties if '-' not in v['pokemon']['name'] or any(v['pokemon']['name'].endswith(suffix) for suffix in ['-alola', '-galar', '-hisui', '-paldea'])]
+                                allowed_varieties = [v for v in varieties if '-' not in v['pokemon']['name'] or any(suffix in v['pokemon']['name'] for suffix in ['-alola', '-galar', '-hisui', '-paldea'])]
                                 if allowed_varieties:
                                     variety = random.choice(allowed_varieties)
                                     pokemon_id = int(variety['pokemon']['url'].split('/')[-2])
