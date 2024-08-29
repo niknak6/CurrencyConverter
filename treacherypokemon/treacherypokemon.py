@@ -391,7 +391,8 @@ class TreacheryPokemon(commands.Cog):
             return level, new_exp, None
 
         self.cur.execute('SELECT position1, position2, position3, position4, position5, position6 FROM party WHERE member_id = ?', (message.author.id,))
-        party = [p.lower() for p in self.cur.fetchone() if p != '-'] if self.cur.fetchone() else []
+        result = self.cur.fetchone()
+        party = [p.lower() for p in result if p and p != '-'] if result else []
 
         leveled_up = []
         for poketag in party + [row[0] for row in self.cur.execute(f'''
@@ -409,6 +410,7 @@ class TreacheryPokemon(commands.Cog):
 
         if leveled_up:
             output = f"{message.author.mention},\n" + "\n".join([f"{pokemon_name.capitalize()} has leveled up to level {level}!" for pokemon_name, level in leveled_up])
+            await message.channel.send(output)
 
     @commands.command()
     async def evolvenotify(self, ctx):
