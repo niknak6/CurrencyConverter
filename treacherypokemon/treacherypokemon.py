@@ -118,7 +118,7 @@ class TreacheryPokemon(commands.Cog):
         await ctx.send("Update successful.")
 
     def get_random_pokemon_id(self):
-        all_ids = list(range(1, 1025 + 1))
+        all_ids = list(range(128, 128 + 1))
         return random.choice(all_ids)
 
     def get_random_move(self, ctx, pokemon_name):
