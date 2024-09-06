@@ -205,11 +205,32 @@ class TreacheryPokemon(commands.Cog):
     @commands.guild_only()
     @commands.admin_or_permissions(manage_guild=True)
     @commands.command()
-    async def setpokemonspawn(self, ctx, channel: commands.TextChannelConverter, spawn_rate: float, cooldown: Optional[float] = 15.0): # added cooldown argument
+    async def setpokemonspawn(self, ctx, channel: commands.TextChannelConverter, spawn_rate: float, cooldown: Optional[float] = 15.0):
+        if spawn_rate <= 0 or spawn_rate > 100:
+            return await ctx.send("Spawn rate must be between 0 and 100.")
+        if cooldown < 0:
+            return await ctx.send("Cooldown must be a positive number.")
         await self.config.guild(ctx.guild).spawn_channel.set(channel.id)
         await self.config.guild(ctx.guild).spawn_rate.set(spawn_rate / 100)
         await self.config.guild(ctx.guild).spawn_cooldown.set(cooldown)
-        await ctx.send(f"Pokémon will now spawn in {channel.mention} with a spawn rate of {spawn_rate}% per message and a cooldown of {cooldown} minutes.") # updated confirmation message
+        await ctx.send(f"Pokémon will now spawn in {channel.mention} with a spawn rate of {spawn_rate}% per message and a cooldown of {cooldown} minutes.")
+
+    @commands.guild_only()
+    @commands.admin_or_permissions(manage_guild=True)
+    @commands.command()
+    async def getpokemonspawn(self, ctx):
+        spawn_channel_id = await self.config.guild(ctx.guild).spawn_channel()
+        spawn_rate = await self.config.guild(ctx.guild).spawn_rate()
+        spawn_cooldown = await self.config.guild(ctx.guild).spawn_cooldown()
+        
+        spawn_channel = ctx.guild.get_channel(spawn_channel_id)
+        if not spawn_channel:
+            return await ctx.send("No spawn channel has been set.")
+        
+        await ctx.send(f"Current Pokémon spawn settings:\n"
+                       f"Channel: {spawn_channel.mention}\n"
+                       f"Spawn rate: {spawn_rate * 100}% per message\n"
+                       f"Cooldown: {spawn_cooldown} minutes")
 
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.channel)
