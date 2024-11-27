@@ -12,13 +12,13 @@ class TikTokCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.url_patterns = {
-            'tiktok': re.compile(r"(https?://)?((\w+\.)?(\w+)\.)?tiktok.com/(\S*)"),
+            #'tiktok': re.compile(r"(https?://)?((\w+\.)?(\w+)\.)?tiktok.com/(\S*)"),
             'twitter': re.compile(r"(https?://)?((\w+\.)?(\w+)\.)?twitter.com/(\S*)"),
             'x': re.compile(r"(https?://)?((\w+\.)?(\w+)\.)?x.com/(\S*)"),
             'instagram': re.compile(r"(https?://)?((\w+\.)?(\w+)\.)?instagram.com/reel/(\S*)")
         }
         self.new_domains = {
-            'tiktok': 'tnktok.com/',
+            #'tiktok': 'tnktok.com/',
             'twitter': 'vxtwitter.com/',
             'x': 'fixvx.com/',
             'instagram': 'ddinstagram.com/reel/'
